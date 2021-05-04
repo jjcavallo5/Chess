@@ -162,7 +162,6 @@ function dragStart(e, element, elementClass) {
             newSquare.appendChild(element);
             newSquare.classList.add(elementClass);
             newSquare.classList.add("Occupied");
-            updateBoard();
         } else {
             let oldSquare = document.querySelector('.' + initSquare);
             element.style.position = 'relative'
