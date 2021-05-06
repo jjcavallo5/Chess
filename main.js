@@ -24,11 +24,11 @@ function SetBoard() {
 
     for (let i = 0; i < lightPawns.length; i++) {
         node = document.createElement("IMG");
-        node.src = "images/Chess_plt60.png";
+        node.src = "images/whitePawn.png";
         node.id = String.fromCharCode(i + 65) + '2Pawn';
         lightPawns[i].appendChild(node);
         node = document.createElement("IMG")
-        node.src = "images/Chess_pdt60.png";
+        node.src = "images/blackPawn.png";
         node.id = String.fromCharCode(i + 65) + '7Pawn';
         darkPawns[i].appendChild(node);
 
@@ -40,12 +40,12 @@ function SetBoard() {
 
     for (let i = 0; i < lightRooks.length; i++) {
         node = document.createElement("IMG");
-        node.src = "images/Chess_rlt60.png";
+        node.src = "images/whiteRook.png";
         if (i == 0) node.id = "A1Rook";
         else node.id = "H1Rook";
         lightRooks[i].appendChild(node);
         node = document.createElement("IMG");
-        node.src = "images/Chess_rdt60.png";
+        node.src = "images/blackRook.png";
         if (i == 0) node.id = "A8Rook";
         else node.id = "H8Rook";
         darkRooks[i].appendChild(node);
@@ -58,12 +58,12 @@ function SetBoard() {
 
     for (let i = 0; i < lightKnights.length; i++ ) {
         node = document.createElement("IMG");
-        node.src = "images/Chess_nlt60.png";
+        node.src = "images/whiteKnight.png";
         if (i == 0) node.id = "B1Knight";
         else node.id = "G1Knight";
         lightKnights[i].appendChild(node);
         node = document.createElement("IMG");
-        node.src = "images/Chess_ndt60.png";
+        node.src = "images/blackKnight.png";
         if (i == 0) node.id = "B8Knight";
         else node.id = "G8Knight";
         darkKnights[i].appendChild(node);
@@ -76,12 +76,12 @@ function SetBoard() {
 
     for (let i = 0; i < lightBishops.length; i++) {
         node = document.createElement("IMG");
-        node.src = "images/Chess_blt60.png";
+        node.src = "images/whiteBishop.png";
         if (i == 0) node.id = "C1Bishop";
         else node.id = "F1Bishop";
         lightBishops[i].appendChild(node);
         node = document.createElement("IMG");
-        node.src = "images/Chess_bdt60.png";
+        node.src = "images/blackBishop.png";
         if (i == 0) node.id = "C8Bishop";
         else node.id = "F8Bishop";
         darkBishops[i].appendChild(node);
@@ -91,22 +91,22 @@ function SetBoard() {
     }
 
     node = document.createElement("IMG")
-    node.src = "images/Chess_klt60.png"
+    node.src = "images/whiteKing.png"
     node.id = "E1King"
     lightKing.appendChild(node);
 
     node = document.createElement("IMG")
-    node.src = "images/Chess_kdt60.png"
+    node.src = "images/blackKing.png"
     node.id = "E8King"
     darkKing.appendChild(node);
 
     node = document.createElement("IMG")
-    node.src = "images/Chess_qlt60.png"
+    node.src = "images/whiteQueen.png"
     node.id = "D1Queen"
     lightQueen.appendChild(node);
 
     node = document.createElement("IMG")
-    node.src = "images/Chess_qdt60.png"
+    node.src = "images/blackQueen.png"
     node.id = "D8Queen"
     darkQueen.appendChild(node);
 
