@@ -19,14 +19,14 @@ class Move {
 class UpdatedBoard {
     constructor() {
         this.boardArray = [
-            ["r", "n", "b", "q", "k", "b", "n", "r"],
-            ["p", "p", "p", "p", "p", "p", "p", "p"],
+            [" ", " ", " ", "k", "r", "r", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " "],
-            [" ", " ", " ", " ", "q", " ", " ", " "],
+            [" ", " ", "B", " ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " "],
-            ["P", "P", "P", "P", "P", "P", "P", "P"],
-            ["R", "N", "B", "Q", "K", "B", "N", "R"],
+            [" ", " ", " ", " ", "K", " ", " ", " "],
+            [" ", " ", " ", " ", " ", " ", " ", " "],
+            [" ", " ", " ", " ", " ", " ", " ", " "],
         ];
 
         this.boardFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
@@ -66,10 +66,11 @@ class UpdatedBoard {
         this.moveList = [];
         this.capturedBlackPieceStack = [];
         this.capturedWhitePieceStack = [];
-        
-        this.captureCount = 0;
 
-        //this.bitBoardFromArray();
+        this.captureCount = 0;
+        this.divideArr = [];
+
+        //this.bitBoardFromArray(this.boardArray);
         this.bitboardFromFEN();
     }
 
@@ -139,15 +140,14 @@ class UpdatedBoard {
     }
 
     bitboardFromFEN() {
-        let arr = [[],[],[],[],[],[],[],[]];
+        let arr = [[], [], [], [], [], [], [], []];
         let arrIndex = 0;
         for (let i = 0; i < this.boardFEN.length; i++) {
-            if (this.boardFEN[i] == '/') arrIndex++;
-            else if (this.boardFEN[i] >= '0' && this.boardFEN[i] <= '8') {
-                for (let j = 0; j < parseInt(this.boardFEN[i]); j++)
-                    arr[arrIndex].push(" ")
+            if (this.boardFEN[i] == "/") arrIndex++;
+            else if (this.boardFEN[i] >= "0" && this.boardFEN[i] <= "8") {
+                for (let j = 0; j < parseInt(this.boardFEN[i]); j++) arr[arrIndex].push(" ");
             } else {
-                arr[arrIndex].push(this.boardFEN[i])
+                arr[arrIndex].push(this.boardFEN[i]);
             }
         }
 
@@ -160,50 +160,74 @@ class UpdatedBoard {
         let anyBlackAttack;
 
         //Black rooks and queens West
-        let _blackAttacks = westAttacks(this.darkRooks | this.darkQueen, ~this.occupied);
+        let _blackAttacks = westAttacks(
+            this.darkRooks | this.darkQueen,
+            ~(this.occupied & ~this.lightKing)
+        );
         anyBlackAttack = _blackAttacks;
         let _superAttacks = slidingEastRay(this.lightKing, this.occupied);
         kingSuperAttacksOrtho = _superAttacks;
         horzInBetween = _blackAttacks & _superAttacks;
         //Black rooks and queens East
-        _blackAttacks = eastAttacks(this.darkRooks | this.darkQueen, ~this.occupied);
+        _blackAttacks = eastAttacks(
+            this.darkRooks | this.darkQueen,
+            ~(this.occupied & ~this.lightKing)
+        );
         anyBlackAttack |= _blackAttacks;
         _superAttacks = slidingWestRay(this.lightKing, this.occupied);
         kingSuperAttacksOrtho |= _superAttacks;
         horzInBetween |= _blackAttacks & _superAttacks;
         //Black rooks and queens North
-        _blackAttacks = northAttacks(this.darkRooks | this.darkQueen, ~this.occupied);
+        _blackAttacks = northAttacks(
+            this.darkRooks | this.darkQueen,
+            ~(this.occupied & ~this.lightKing)
+        );
         anyBlackAttack |= _blackAttacks;
         _superAttacks = slidingSouthRay(this.lightKing, this.occupied);
         kingSuperAttacksOrtho |= _superAttacks;
         vertInBetween = _blackAttacks & _superAttacks;
         //Black rooks and queens South
-        _blackAttacks = southAttacks(this.darkRooks | this.darkQueen, ~this.occupied);
+        _blackAttacks = southAttacks(
+            this.darkRooks | this.darkQueen,
+            ~(this.occupied & ~this.lightKing)
+        );
         anyBlackAttack |= _blackAttacks;
         _superAttacks = slidingNorthRay(this.lightKing, this.occupied);
         kingSuperAttacksOrtho |= _superAttacks;
         vertInBetween |= _blackAttacks & _superAttacks;
 
         //Black bishops and queens NE
-        _blackAttacks = northEastAttacks(this.darkBishops | this.darkQueen, ~this.occupied);
+        _blackAttacks = northEastAttacks(
+            this.darkBishops | this.darkQueen,
+            ~(this.occupied & ~this.lightKing)
+        );
         anyBlackAttack |= _blackAttacks;
         _superAttacks = slidingSouthWestRay(this.lightKing, this.occupied);
         kingSuperAttacksDia = _superAttacks;
         diaInBetween = _blackAttacks & _superAttacks;
         //Black bishops and queens SW
-        _blackAttacks = southWestAttacks(this.darkBishops | this.darkQueen, ~this.occupied);
+        _blackAttacks = southWestAttacks(
+            this.darkBishops | this.darkQueen,
+            ~(this.occupied & ~this.lightKing)
+        );
         anyBlackAttack |= _blackAttacks;
         _superAttacks = slidingNorthEastRay(this.lightKing, this.occupied);
         kingSuperAttacksDia |= _superAttacks;
         diaInBetween |= _blackAttacks & _superAttacks;
         //Black bishops and queens NW
-        _blackAttacks = northWestAttacks(this.darkBishops | this.darkQueen, ~this.occupied);
+        _blackAttacks = northWestAttacks(
+            this.darkBishops | this.darkQueen,
+            ~(this.occupied & ~this.lightKing)
+        );
         anyBlackAttack |= _blackAttacks;
         _superAttacks = slidingSouthEastRay(this.lightKing, this.occupied);
         kingSuperAttacksDia |= _superAttacks;
         antiInBetween = _blackAttacks & _superAttacks;
         //Black bishops and queens SE
-        _blackAttacks = southEastAttacks(this.darkBishops | this.darkQueen, ~this.occupied);
+        _blackAttacks = southEastAttacks(
+            this.darkBishops | this.darkQueen,
+            ~(this.occupied & ~this.lightKing)
+        );
         anyBlackAttack |= _blackAttacks;
         _superAttacks = slidingNorthWestRay(this.lightKing, this.occupied);
         kingSuperAttacksDia |= _superAttacks;
@@ -259,7 +283,7 @@ class UpdatedBoard {
         this.moveTargets[15] = NOne(NWOne(_knights)) & targetMask;
 
         //Pawns
-        let _targets = (this.darkPieces & targetMask) | (1n << this.enPassantTarget); // ! Check on EP target
+        let _targets = this.darkPieces & targetMask; //| (1n << this.enPassantTarget); // ! Check on EP target
         let _pawns = this.lightPawns & ~(allInBetween ^ diaInBetween);
         this.moveTargets[1] |= NEOne(_pawns) & _targets;
         _pawns = this.lightPawns & ~(allInBetween ^ antiInBetween);
@@ -290,91 +314,144 @@ class UpdatedBoard {
                 //NORTH
                 targetSquares = slidingNorthRay(mask, this.occupied) & this.moveTargets[0];
                 shift = NOne(mask);
-                while (shift & targetSquares) {
-                    //Add Move
-                    if (shift & this.darkPieces) flag = 0b0100;
-                    this.moveList.push(new Move(getSquareIndex(mask), getSquareIndex(shift), flag));
-                    flag = 0b0000;
+                for (let j = 0; j < 7; j++) {
+                    if (shift & targetSquares) {
+                        //Add Move
+                        if (shift & this.darkPieces) {
+                            flag = 0b0100;
+                            //console.log("N Capture");
+                        }
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
+                        );
+                        flag = 0b0000;
+                    }
                     shift = NOne(shift);
                 }
 
                 //NORTH EAST
                 targetSquares = slidingNorthEastRay(mask, this.occupied) & this.moveTargets[1];
                 shift = NEOne(mask);
-                while (shift & targetSquares) {
-                    //Add Move
-                    if (shift & this.darkPieces) {
-                        console.log("Capture");
-                        flag = 0b0100;
+                for (let j = 0; j < 7; j++) {
+                    if (shift & targetSquares) {
+                        //Add Move
+                        if (shift & this.darkPieces) {
+                            flag = 0b0100;
+                            //console.log("N Capture");
+                        }
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
+                        );
+                        flag = 0b0000;
                     }
-                    this.moveList.push(new Move(getSquareIndex(mask), getSquareIndex(shift), flag));
-                    flag = 0b0000;
                     shift = NEOne(shift);
                 }
 
                 //EAST
                 targetSquares = slidingEastRay(mask, this.occupied) & this.moveTargets[2];
                 shift = EOne(mask);
-                while (shift & targetSquares) {
-                    //Add Move
-                    if (shift & this.darkPieces) flag = 0b0100;
-                    this.moveList.push(new Move(getSquareIndex(mask), getSquareIndex(shift), flag));
-                    flag = 0b0000;
+                for (let j = 0; j < 7; j++) {
+                    if (shift & targetSquares) {
+                        //Add Move
+                        if (shift & this.darkPieces) {
+                            flag = 0b0100;
+                            //console.log("N Capture");
+                        }
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
+                        );
+                        flag = 0b0000;
+                    }
                     shift = EOne(shift);
                 }
 
                 //SOUTH EAST
                 targetSquares = slidingSouthEastRay(mask, this.occupied) & this.moveTargets[3];
                 shift = SEOne(mask);
-                while (shift & targetSquares) {
-                    //Add Move
-                    if (shift & this.darkPieces) flag = 0b0100;
-                    this.moveList.push(new Move(getSquareIndex(mask), getSquareIndex(shift), flag));
-                    flag = 0b0000;
+                for (let j = 0; j < 7; j++) {
+                    if (shift & targetSquares) {
+                        //Add Move
+                        if (shift & this.darkPieces) {
+                            flag = 0b0100;
+                            //console.log("N Capture");
+                        }
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
+                        );
+                        flag = 0b0000;
+                    }
                     shift = SEOne(shift);
                 }
 
                 //SOUTH
                 targetSquares = slidingSouthRay(mask, this.occupied) & this.moveTargets[4];
                 shift = SOne(mask);
-                while (shift & targetSquares) {
-                    //Add Move
-                    if (shift & this.darkPieces) flag = 0b0100;
-                    this.moveList.push(new Move(getSquareIndex(mask), getSquareIndex(shift), flag));
-                    flag = 0b0000;
+                for (let j = 0; j < 7; j++) {
+                    if (shift & targetSquares) {
+                        //Add Move
+                        if (shift & this.darkPieces) {
+                            flag = 0b0100;
+                            //console.log("N Capture");
+                        }
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
+                        );
+                        flag = 0b0000;
+                    }
                     shift = SOne(shift);
                 }
 
                 //SOUTH WEST
                 targetSquares = slidingSouthWestRay(mask, this.occupied) & this.moveTargets[5];
                 shift = SWOne(mask);
-                while (shift & targetSquares) {
-                    //Add Move
-                    if (shift & this.darkPieces) flag = 0b0100;
-                    this.moveList.push(new Move(getSquareIndex(mask), getSquareIndex(shift), flag));
-                    flag = 0b0000;
+                for (let j = 0; j < 7; j++) {
+                    if (shift & targetSquares) {
+                        //Add Move
+                        if (shift & this.darkPieces) {
+                            flag = 0b0100;
+                            //console.log("N Capture");
+                        }
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
+                        );
+                        flag = 0b0000;
+                    }
                     shift = SWOne(shift);
                 }
 
                 //WEST
                 targetSquares = slidingWestRay(mask, this.occupied) & this.moveTargets[6];
                 shift = WOne(mask);
-                while (shift & targetSquares) {
-                    //Add Move
-                    if (shift & this.darkPieces) flag = 0b0100;
-                    this.moveList.push(new Move(getSquareIndex(mask), getSquareIndex(shift), flag));
-                    flag = 0b0000;
+                for (let j = 0; j < 7; j++) {
+                    if (shift & targetSquares) {
+                        //Add Move
+                        if (shift & this.darkPieces) {
+                            flag = 0b0100;
+                            //console.log("N Capture");
+                        }
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
+                        );
+                        flag = 0b0000;
+                    }
                     shift = WOne(shift);
                 }
 
                 //NORTH WEST
                 targetSquares = slidingNorthWestRay(mask, this.occupied) & this.moveTargets[7];
                 shift = NWOne(mask);
-                while (shift & targetSquares) {
-                    //Add Move
-                    if (shift & this.darkPieces) flag = 0b0100;
-                    this.moveList.push(new Move(getSquareIndex(mask), getSquareIndex(shift), flag));
-                    flag = 0b0000;
+                for (let j = 0; j < 7; j++) {
+                    if (shift & targetSquares) {
+                        //Add Move
+                        if (shift & this.darkPieces) {
+                            flag = 0b0100;
+                            //console.log("N Capture");
+                        }
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
+                        );
+                        flag = 0b0000;
+                    }
                     shift = NWOne(shift);
                 }
 
@@ -387,6 +464,7 @@ class UpdatedBoard {
                         this.moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
+                        flag = 0b0000;
                     }
                     //NNE
                     targetSquares =
@@ -396,6 +474,7 @@ class UpdatedBoard {
                         this.moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
+                        flag = 0b0000;
                     }
                     //NNE
                     targetSquares =
@@ -405,6 +484,7 @@ class UpdatedBoard {
                         this.moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
+                        flag = 0b0000;
                     }
                     //NNE
                     targetSquares =
@@ -414,6 +494,7 @@ class UpdatedBoard {
                         this.moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
+                        flag = 0b0000;
                     }
                     //NNE
                     targetSquares =
@@ -423,6 +504,7 @@ class UpdatedBoard {
                         this.moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
+                        flag = 0b0000;
                     }
                     //NNE
                     targetSquares =
@@ -432,6 +514,7 @@ class UpdatedBoard {
                         this.moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
+                        flag = 0b0000;
                     }
                     //NNE
                     targetSquares =
@@ -441,6 +524,7 @@ class UpdatedBoard {
                         this.moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
+                        flag = 0b0000;
                     }
                     //NNE
                     targetSquares =
@@ -450,6 +534,7 @@ class UpdatedBoard {
                         this.moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
+                        flag = 0b0000;
                     }
                 }
             }
@@ -465,50 +550,74 @@ class UpdatedBoard {
         let anyWhiteAttack;
 
         //Black rooks and queens West
-        let _whiteAttacks = westAttacks(this.lightRooks | this.lightQueen, ~this.occupied);
+        let _whiteAttacks = westAttacks(
+            this.lightRooks | this.lightQueen,
+            ~(this.occupied & ~this.darkKing)
+        );
         anyWhiteAttack = _whiteAttacks;
         let _superAttacks = slidingEastRay(this.darkKing, this.occupied);
         kingSuperAttacksOrtho = _superAttacks;
         horzInBetween = _whiteAttacks & _superAttacks;
         //Black rooks and queens East
-        _whiteAttacks = eastAttacks(this.lightRooks | this.lightQueen, ~this.occupied);
+        _whiteAttacks = eastAttacks(
+            this.lightRooks | this.lightQueen,
+            ~(this.occupied & ~this.darkKing)
+        );
         anyWhiteAttack |= _whiteAttacks;
         _superAttacks = slidingWestRay(this.darkKing, this.occupied);
         kingSuperAttacksOrtho |= _superAttacks;
         horzInBetween |= _whiteAttacks & _superAttacks;
         //Black rooks and queens North
-        _whiteAttacks = northAttacks(this.lightRooks | this.lightQueen, ~this.occupied);
+        _whiteAttacks = northAttacks(
+            this.lightRooks | this.lightQueen,
+            ~(this.occupied & ~this.darkKing)
+        );
         anyWhiteAttack |= _whiteAttacks;
         _superAttacks = slidingSouthRay(this.darkKing, this.occupied);
         kingSuperAttacksOrtho |= _superAttacks;
         vertInBetween = _whiteAttacks & _superAttacks;
         //Black rooks and queens South
-        _whiteAttacks = southAttacks(this.lightRooks | this.lightQueen, ~this.occupied);
+        _whiteAttacks = southAttacks(
+            this.lightRooks | this.lightQueen,
+            ~(this.occupied & ~this.darkKing)
+        );
         anyWhiteAttack |= _whiteAttacks;
         _superAttacks = slidingNorthRay(this.darkKing, this.occupied);
         kingSuperAttacksOrtho |= _superAttacks;
         vertInBetween |= _whiteAttacks & _superAttacks;
 
         //Black bishops and queens NE
-        _whiteAttacks = northEastAttacks(this.lightBishops | this.lightQueen, ~this.occupied);
+        _whiteAttacks = northEastAttacks(
+            this.lightBishops | this.lightQueen,
+            ~(this.occupied & ~this.darkKing)
+        );
         anyWhiteAttack |= _whiteAttacks;
         _superAttacks = slidingSouthWestRay(this.darkKing, this.occupied);
         kingSuperAttacksDia = _superAttacks;
         diaInBetween = _whiteAttacks & _superAttacks;
         //Black bishops and queens SW
-        _whiteAttacks = southWestAttacks(this.lightBishops | this.lightQueen, ~this.occupied);
+        _whiteAttacks = southWestAttacks(
+            this.lightBishops | this.lightQueen,
+            ~(this.occupied & ~this.darkKing)
+        );
         anyWhiteAttack |= _whiteAttacks;
         _superAttacks = slidingNorthEastRay(this.darkKing, this.occupied);
         kingSuperAttacksDia |= _superAttacks;
         diaInBetween |= _whiteAttacks & _superAttacks;
         //Black bishops and queens NW
-        _whiteAttacks = northWestAttacks(this.lightBishops | this.lightQueen, ~this.occupied);
+        _whiteAttacks = northWestAttacks(
+            this.lightBishops | this.lightQueen,
+            ~(this.occupied & ~this.darkKing)
+        );
         anyWhiteAttack |= _whiteAttacks;
         _superAttacks = slidingSouthEastRay(this.darkKing, this.occupied);
         kingSuperAttacksDia |= _superAttacks;
         antiInBetween = _whiteAttacks & _superAttacks;
         //Black bishops and queens SE
-        _whiteAttacks = southEastAttacks(this.lightBishops | this.lightQueen, ~this.occupied);
+        _whiteAttacks = southEastAttacks(
+            this.lightBishops | this.lightQueen,
+            ~(this.occupied & ~this.darkKing)
+        );
         anyWhiteAttack |= _whiteAttacks;
         _superAttacks = slidingNorthWestRay(this.darkKing, this.occupied);
         kingSuperAttacksDia |= _superAttacks;
@@ -564,7 +673,7 @@ class UpdatedBoard {
         this.moveTargets[15] = NOne(NWOne(_knights)) & targetMask;
 
         //Pawns
-        let _targets = (this.lightPieces & targetMask) | (1n << this.enPassantTarget); // ! Check on EP target
+        let _targets = this.lightPieces & targetMask; // | (1n << this.enPassantTarget); // ! Check on EP target
         let _pawns = this.darkPawns & ~(allInBetween ^ diaInBetween);
         this.moveTargets[3] |= SEOne(_pawns) & _targets;
         _pawns = this.darkPawns & ~(allInBetween ^ antiInBetween);
@@ -595,105 +704,121 @@ class UpdatedBoard {
                 //NORTH
                 targetSquares = slidingNorthRay(mask, this.occupied) & this.moveTargets[0];
                 shift = NOne(mask);
-                while (shift & targetSquares) {
-                    //Add Move
-                    if (shift & this.lightPieces) flag = 0b0100;
-                    this.moveList.push(
-                        new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
-                    );
+                for (let j = 0; j < 7; j++) {
+                    if (shift & targetSquares) {
+                        //Add Move
+                        if (shift & this.lightPieces) flag = 0b0100;
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
+                        );
+                        flag = 0b0000;
+                    }
                     shift = NOne(shift);
-                    flag = 0b0000;
                 }
 
                 //NORTH EAST
                 targetSquares = slidingNorthEastRay(mask, this.occupied) & this.moveTargets[1];
                 shift = NEOne(mask);
-                while (shift & targetSquares) {
-                    //Add Move
-                    if (shift & this.lightPieces) flag = 0b0100;
-                    this.moveList.push(
-                        new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
-                    );
+                for (let j = 0; j < 7; j++) {
+                    if (shift & targetSquares) {
+                        //Add Move
+                        if (shift & this.lightPieces) flag = 0b0100;
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
+                        );
+                        flag = 0b0000;
+                    }
                     shift = NEOne(shift);
-                    flag = 0b0000;
                 }
 
                 //EAST
                 targetSquares = slidingEastRay(mask, this.occupied) & this.moveTargets[2];
                 shift = EOne(mask);
-                while (shift & targetSquares) {
-                    //Add Move
-                    if (shift & this.lightPieces) flag = 0b0100;
-                    this.moveList.push(
-                        new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
-                    );
+                for (let j = 0; j < 7; j++) {
+                    if (shift & targetSquares) {
+                        //Add Move
+                        if (shift & this.lightPieces) flag = 0b0100;
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
+                        );
+                        flag = 0b0000;
+                    }
                     shift = EOne(shift);
-                    flag = 0b0000;
                 }
 
                 //SOUTH EAST
                 targetSquares = slidingSouthEastRay(mask, this.occupied) & this.moveTargets[3];
                 shift = SEOne(mask);
-                while (shift & targetSquares) {
-                    //Add Move
-                    if (shift & this.lightPieces) flag = 0b0100;
-                    this.moveList.push(
-                        new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
-                    );
+                for (let j = 0; j < 7; j++) {
+                    if (shift & targetSquares) {
+                        //Add Move
+                        if (shift & this.lightPieces) flag = 0b0100;
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
+                        );
+                        flag = 0b0000;
+                    }
                     shift = SEOne(shift);
-                    flag = 0b0000;
                 }
 
                 //SOUTH
                 targetSquares = slidingSouthRay(mask, this.occupied) & this.moveTargets[4];
                 shift = SOne(mask);
-                while (shift & targetSquares) {
-                    //Add Move
-                    if (shift & this.lightPieces) flag = 0b0100;
-                    this.moveList.push(
-                        new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
-                    );
+                for (let j = 0; j < 7; j++) {
+                    if (shift & targetSquares) {
+                        //Add Move
+                        if (shift & this.lightPieces) flag = 0b0100;
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
+                        );
+                        flag = 0b0000;
+                    }
                     shift = SOne(shift);
-                    flag = 0b0000;
                 }
 
                 //SOUTH WEST
                 targetSquares = slidingSouthWestRay(mask, this.occupied) & this.moveTargets[5];
                 shift = SWOne(mask);
-                while (shift & targetSquares) {
-                    //Add Move
-                    if (shift & this.lightPieces) flag = 0b0100;
-                    this.moveList.push(
-                        new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
-                    );
+                for (let j = 0; j < 7; j++) {
+                    if (shift & targetSquares) {
+                        //Add Move
+                        if (shift & this.lightPieces) flag = 0b0100;
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
+                        );
+                        flag = 0b0000;
+                    }
                     shift = SWOne(shift);
-                    flag = 0b0000;
                 }
 
                 //WEST
                 targetSquares = slidingWestRay(mask, this.occupied) & this.moveTargets[6];
                 shift = WOne(mask);
-                while (shift & targetSquares) {
-                    //Add Move
-                    if (shift & this.lightPieces) flag = 0b0100;
-                    this.moveList.push(
-                        new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
-                    );
+                for (let j = 0; j < 7; j++) {
+                    if (shift & targetSquares) {
+                        //Add Move
+                        if (shift & this.lightPieces) flag = 0b0100;
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
+                        );
+                        flag = 0b0000;
+                    }
                     shift = WOne(shift);
-                    flag = 0b0000;
                 }
 
                 //NORTH WEST
                 targetSquares = slidingNorthWestRay(mask, this.occupied) & this.moveTargets[7];
                 shift = NWOne(mask);
-                while (shift & targetSquares) {
-                    //Add Move
-                    if (shift & this.lightPieces) flag = 0b0100;
-                    this.moveList.push(
-                        new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
-                    );
+                for (let j = 0; j < 7; j++) {
+                    if (shift & targetSquares) {
+                        //Add Move
+                        if (shift & this.lightPieces) flag = 0b0100;
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
+                        );
+                        flag = 0b0000;
+                    }
                     shift = NWOne(shift);
-                    flag = 0b0000;
                 }
 
                 if (mask & this.darkKnights) {
@@ -755,6 +880,7 @@ class UpdatedBoard {
                         this.moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
+                        flag = 0b0000;
                     }
                     //NNE
                     targetSquares =
@@ -773,6 +899,7 @@ class UpdatedBoard {
                         this.moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
+                    flag = 0b0000;
                 }
             }
             mask >>= 1n;
@@ -789,12 +916,20 @@ class UpdatedBoard {
 
         if (move.getButterflyIndex() == CAPTURE_FLAG) {
             this.captureCount++;
+            //console.log(move.from, move.target);
             if (start & this.lightPieces) {
-                if (target & this.darkPawns) this.capturedBlackPieceStack.push(0);
+                if (target & this.darkPawns) {
+                    this.capturedBlackPieceStack.push(0);
+                    //console.log("Black Pawn Captured");
+                }
                 if (target & this.darkRooks) this.capturedBlackPieceStack.push(1);
-                if (target & this.darkKnights) this.capturedBlackPieceStack.push(2);
+                if (target & this.darkKnights) {
+                    this.capturedBlackPieceStack.push(2);
+                    //console.log("Black Knight Captured");
+                }
                 if (target & this.darkBishops) this.capturedBlackPieceStack.push(3);
                 if (target & this.darkQueen) this.capturedBlackPieceStack.push(4);
+                //console.log(this.capturedBlackPieceStack);
                 this.darkPawns &= ~target;
                 this.darkRooks &= ~target;
                 this.darkKnights &= ~target;
@@ -834,6 +969,10 @@ class UpdatedBoard {
             this.lightKnights &= ~start;
             this.lightKnights |= target;
         }
+        if (start & this.lightKing) {
+            this.lightKing &= ~start;
+            this.lightKing |= target;
+        }
         if (start & this.darkPawns) {
             this.darkPawns &= ~start;
             this.darkPawns |= target;
@@ -853,6 +992,10 @@ class UpdatedBoard {
         if (start & this.darkKnights) {
             this.darkKnights &= ~start;
             this.darkKnights |= target;
+        }
+        if (start & this.darkKing) {
+            this.darkKing &= ~start;
+            this.darkKing |= target;
         }
 
         this.lightPieces =
@@ -899,6 +1042,10 @@ class UpdatedBoard {
             this.lightKnights &= ~start;
             this.lightKnights |= target;
         }
+        if (start & this.lightKing) {
+            this.lightKing &= ~start;
+            this.lightKing |= target;
+        }
         if (start & this.darkPawns) {
             this.darkPawns &= ~start;
             this.darkPawns |= target;
@@ -918,6 +1065,10 @@ class UpdatedBoard {
         if (start & this.darkKnights) {
             this.darkKnights &= ~start;
             this.darkKnights |= target;
+        }
+        if (start & this.darkKing) {
+            this.darkKing &= ~start;
+            this.darkKing |= target;
         }
 
         if (move.getButterflyIndex() == CAPTURE_FLAG) {
@@ -961,18 +1112,19 @@ class UpdatedBoard {
         if (depth == 0) {
             return 1;
         }
-
         let moves;
         if (this.playerBoolean) moves = this.getWhiteMoves();
         else moves = this.getBlackMoves();
 
+        if (moves.length == 0) this.mateCount++;
+
         let count = 0;
-        if (moves.length == 0) return 1;
         for (let i = 0; i < moves.length; i++) {
             this.makeMove(moves[i]);
             //this.updateGUI();
             //window.prompt("next");
             count += this.perft(depth - 1);
+            if (depth == 3) this.divideArr.push(count);
             this.unmakeMove(moves[i]);
             //this.updateGUI();
         }
@@ -1019,6 +1171,6 @@ class UpdatedBoard {
 let board15 = new UpdatedBoard();
 console.log("In second thing");
 
-console.log(board15.perft(5));
+console.log(board15.perft(3));
 board15.updateGUI();
-console.log(board15.captureCount)
+console.log(board15.captureCount, board15.divideArr);
