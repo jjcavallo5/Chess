@@ -1,4 +1,5 @@
 const CAPTURE_FLAG = 0b0100;
+const PERFT_DEPTH = 3;
 
 class Move {
     constructor(from, to, flags) {
@@ -19,14 +20,14 @@ class Move {
 class UpdatedBoard {
     constructor() {
         this.boardArray = [
-            [" ", " ", " ", "k", "r", "r", " ", " "],
+            ["r", "n", "b", "q", "k", "b", "n", "r"],
+            [" ", "p", "p", "p", "p", "p", "p", "p"],
+            ["p", " ", " ", " ", " ", " ", " ", " "],
+            ["P", " ", " ", " ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " "],
             [" ", " ", " ", " ", " ", " ", " ", " "],
-            [" ", " ", "B", " ", " ", " ", " ", " "],
-            [" ", " ", " ", " ", " ", " ", " ", " "],
-            [" ", " ", " ", " ", "K", " ", " ", " "],
-            [" ", " ", " ", " ", " ", " ", " ", " "],
-            [" ", " ", " ", " ", " ", " ", " ", " "],
+            [" ", "P", "P", "P", "P", "P", "P", "P"],
+            ["R", "N", "B", "Q", "K", "B", "N", "R"],
         ];
 
         this.boardFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
@@ -54,7 +55,8 @@ class UpdatedBoard {
         this.darkCastleRights = [true, true];
 
         //Store En-Passant Squares
-        this.enPassantTarget = 0n;
+        this.lightEnPassantTarget = 0n;
+        this.darkEnPassantTarget = 0n;
 
         this.playerBoolean = true;
 
@@ -283,7 +285,7 @@ class UpdatedBoard {
         this.moveTargets[15] = NOne(NWOne(_knights)) & targetMask;
 
         //Pawns
-        let _targets = this.darkPieces & targetMask; //| (1n << this.enPassantTarget); // ! Check on EP target
+        let _targets = (this.darkPieces & targetMask) | this.lightEnPassantTarget; // ! Check on EP target
         let _pawns = this.lightPawns & ~(allInBetween ^ diaInBetween);
         this.moveTargets[1] |= NEOne(_pawns) & _targets;
         _pawns = this.lightPawns & ~(allInBetween ^ antiInBetween);
@@ -338,7 +340,11 @@ class UpdatedBoard {
                         if (shift & this.darkPieces) {
                             flag = 0b0100;
                             //console.log("N Capture");
-                        }
+                        } else if (
+                            shift & this.lightEnPassantTarget &&
+                            SWOne(shift) & this.lightPawns
+                        )
+                            flag = 0b0101;
                         this.moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
                         );
@@ -446,7 +452,11 @@ class UpdatedBoard {
                         if (shift & this.darkPieces) {
                             flag = 0b0100;
                             //console.log("N Capture");
-                        }
+                        } else if (
+                            shift & this.lightEnPassantTarget &&
+                            SEOne(shift) & this.lightPawns
+                        )
+                            flag = 0b0101;
                         this.moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(shift), flag)
                         );
@@ -457,8 +467,7 @@ class UpdatedBoard {
 
                 if (mask & this.lightKnights) {
                     //NNE
-                    targetSquares =
-                        knightAttacksFromSquare[getSquareIndex(mask)] & this.moveTargets[8];
+                    targetSquares = NOne(NEOne(mask)) & this.moveTargets[8];
                     if (targetSquares) {
                         if (targetSquares & this.darkPieces) flag = 0b0100;
                         this.moveList.push(
@@ -467,8 +476,7 @@ class UpdatedBoard {
                         flag = 0b0000;
                     }
                     //NNE
-                    targetSquares =
-                        knightAttacksFromSquare[getSquareIndex(mask)] & this.moveTargets[9];
+                    targetSquares = EOne(NEOne(mask)) & this.moveTargets[9];
                     if (targetSquares) {
                         if (targetSquares & this.darkPieces) flag = 0b0100;
                         this.moveList.push(
@@ -477,8 +485,7 @@ class UpdatedBoard {
                         flag = 0b0000;
                     }
                     //NNE
-                    targetSquares =
-                        knightAttacksFromSquare[getSquareIndex(mask)] & this.moveTargets[10];
+                    targetSquares = EOne(SEOne(mask)) & this.moveTargets[10];
                     if (targetSquares) {
                         if (targetSquares & this.darkPieces) flag = 0b0100;
                         this.moveList.push(
@@ -487,8 +494,7 @@ class UpdatedBoard {
                         flag = 0b0000;
                     }
                     //NNE
-                    targetSquares =
-                        knightAttacksFromSquare[getSquareIndex(mask)] & this.moveTargets[11];
+                    targetSquares = SOne(SEOne(mask)) & this.moveTargets[11];
                     if (targetSquares) {
                         if (targetSquares & this.darkPieces) flag = 0b0100;
                         this.moveList.push(
@@ -497,8 +503,7 @@ class UpdatedBoard {
                         flag = 0b0000;
                     }
                     //NNE
-                    targetSquares =
-                        knightAttacksFromSquare[getSquareIndex(mask)] & this.moveTargets[12];
+                    targetSquares = SOne(SWOne(mask)) & this.moveTargets[12];
                     if (targetSquares) {
                         if (targetSquares & this.darkPieces) flag = 0b0100;
                         this.moveList.push(
@@ -507,8 +512,7 @@ class UpdatedBoard {
                         flag = 0b0000;
                     }
                     //NNE
-                    targetSquares =
-                        knightAttacksFromSquare[getSquareIndex(mask)] & this.moveTargets[13];
+                    targetSquares = WOne(SWOne(mask)) & this.moveTargets[13];
                     if (targetSquares) {
                         if (targetSquares & this.darkPieces) flag = 0b0100;
                         this.moveList.push(
@@ -517,8 +521,7 @@ class UpdatedBoard {
                         flag = 0b0000;
                     }
                     //NNE
-                    targetSquares =
-                        knightAttacksFromSquare[getSquareIndex(mask)] & this.moveTargets[14];
+                    targetSquares = WOne(NWOne(mask)) & this.moveTargets[14];
                     if (targetSquares) {
                         if (targetSquares & this.darkPieces) flag = 0b0100;
                         this.moveList.push(
@@ -527,8 +530,7 @@ class UpdatedBoard {
                         flag = 0b0000;
                     }
                     //NNE
-                    targetSquares =
-                        knightAttacksFromSquare[getSquareIndex(mask)] & this.moveTargets[15];
+                    targetSquares = NOne(NWOne(mask)) & this.moveTargets[15];
                     if (targetSquares) {
                         if (targetSquares & this.darkPieces) flag = 0b0100;
                         this.moveList.push(
@@ -823,8 +825,7 @@ class UpdatedBoard {
 
                 if (mask & this.darkKnights) {
                     //NNE
-                    targetSquares =
-                        knightAttacksFromSquare[getSquareIndex(mask)] & this.moveTargets[8];
+                    targetSquares = NOne(NEOne(mask)) & this.moveTargets[8];
                     if (targetSquares) {
                         if (targetSquares & this.lightPieces) flag = 0b0100;
                         this.moveList.push(
@@ -833,8 +834,7 @@ class UpdatedBoard {
                         flag = 0b0000;
                     }
                     //NNE
-                    targetSquares =
-                        knightAttacksFromSquare[getSquareIndex(mask)] & this.moveTargets[9];
+                    targetSquares = EOne(NEOne(mask)) & this.moveTargets[9];
                     if (targetSquares) {
                         if (targetSquares & this.lightPieces) flag = 0b0100;
                         this.moveList.push(
@@ -843,8 +843,7 @@ class UpdatedBoard {
                         flag = 0b0000;
                     }
                     //NNE
-                    targetSquares =
-                        knightAttacksFromSquare[getSquareIndex(mask)] & this.moveTargets[10];
+                    targetSquares = EOne(SEOne(mask)) & this.moveTargets[10];
                     if (targetSquares) {
                         if (targetSquares & this.lightPieces) flag = 0b0100;
                         this.moveList.push(
@@ -853,8 +852,7 @@ class UpdatedBoard {
                         flag = 0b0000;
                     }
                     //NNE
-                    targetSquares =
-                        knightAttacksFromSquare[getSquareIndex(mask)] & this.moveTargets[11];
+                    targetSquares = SOne(SEOne(mask)) & this.moveTargets[11];
                     if (targetSquares) {
                         if (targetSquares & this.lightPieces) flag = 0b0100;
                         this.moveList.push(
@@ -863,8 +861,7 @@ class UpdatedBoard {
                         flag = 0b0000;
                     }
                     //NNE
-                    targetSquares =
-                        knightAttacksFromSquare[getSquareIndex(mask)] & this.moveTargets[12];
+                    targetSquares = SOne(SWOne(mask)) & this.moveTargets[12];
                     if (targetSquares) {
                         if (targetSquares & this.lightPieces) flag = 0b0100;
                         this.moveList.push(
@@ -873,8 +870,7 @@ class UpdatedBoard {
                         flag = 0b0000;
                     }
                     //NNE
-                    targetSquares =
-                        knightAttacksFromSquare[getSquareIndex(mask)] & this.moveTargets[13];
+                    targetSquares = WOne(SWOne(mask)) & this.moveTargets[13];
                     if (targetSquares) {
                         if (targetSquares & this.lightPieces) flag = 0b0100;
                         this.moveList.push(
@@ -883,8 +879,7 @@ class UpdatedBoard {
                         flag = 0b0000;
                     }
                     //NNE
-                    targetSquares =
-                        knightAttacksFromSquare[getSquareIndex(mask)] & this.moveTargets[14];
+                    targetSquares = WOne(NWOne(mask)) & this.moveTargets[14];
                     if (targetSquares) {
                         if (targetSquares & this.lightPieces) flag = 0b0100;
                         this.moveList.push(
@@ -893,8 +888,7 @@ class UpdatedBoard {
                         flag = 0b0000;
                     }
                     //NNE
-                    targetSquares =
-                        knightAttacksFromSquare[getSquareIndex(mask)] & this.moveTargets[15];
+                    targetSquares = NOne(NWOne(mask)) & this.moveTargets[15];
                     if (targetSquares)
                         this.moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
@@ -914,44 +908,54 @@ class UpdatedBoard {
 
         //console.log(move.from, " --> ", move.target);
 
-        if (move.getButterflyIndex() == CAPTURE_FLAG) {
+        if (move.getButterflyIndex() & CAPTURE_FLAG) {
             this.captureCount++;
-            //console.log(move.from, move.target);
             if (start & this.lightPieces) {
-                if (target & this.darkPawns) {
-                    this.capturedBlackPieceStack.push(0);
-                    //console.log("Black Pawn Captured");
+                if (move.getButterflyIndex() == 0b0101) {
+                    //EP Capture
+                    console.log("En Passant");
+                    this.darkPawns &= ~(target << 8n);
+                } else {
+                    if (target & this.darkPawns) {
+                        this.capturedBlackPieceStack.push(0);
+                    }
+                    if (target & this.darkRooks) this.capturedBlackPieceStack.push(1);
+                    if (target & this.darkKnights) this.capturedBlackPieceStack.push(2);
+                    if (target & this.darkBishops) this.capturedBlackPieceStack.push(3);
+                    if (target & this.darkQueen) this.capturedBlackPieceStack.push(4);
+                    this.darkPawns &= ~target;
+                    this.darkRooks &= ~target;
+                    this.darkKnights &= ~target;
+                    this.darkBishops &= ~target;
+                    this.darkQueen &= ~target;
                 }
-                if (target & this.darkRooks) this.capturedBlackPieceStack.push(1);
-                if (target & this.darkKnights) {
-                    this.capturedBlackPieceStack.push(2);
-                    //console.log("Black Knight Captured");
-                }
-                if (target & this.darkBishops) this.capturedBlackPieceStack.push(3);
-                if (target & this.darkQueen) this.capturedBlackPieceStack.push(4);
-                //console.log(this.capturedBlackPieceStack);
-                this.darkPawns &= ~target;
-                this.darkRooks &= ~target;
-                this.darkKnights &= ~target;
-                this.darkBishops &= ~target;
-                this.darkQueen &= ~target;
             } else {
-                if (target & this.lightPawns) this.capturedWhitePieceStack.push(0);
-                if (target & this.lightRooks) this.capturedWhitePieceStack.push(1);
-                if (target & this.lightKnights) this.capturedWhitePieceStack.push(2);
-                if (target & this.lightBishops) this.capturedWhitePieceStack.push(3);
-                if (target & this.lightQueen) this.capturedWhitePieceStack.push(4);
-                this.lightPawns &= ~target;
-                this.lightRooks &= ~target;
-                this.lightKnights &= ~target;
-                this.lightBishops &= ~target;
-                this.lightQueen &= ~target;
+                if (move.getButterflyIndex() == 0b0101) {
+                    //EP Capture
+                    this.lightPawns &= ~(target >> 8n);
+                } else {
+                    if (target & this.lightPawns) this.capturedWhitePieceStack.push(0);
+                    if (target & this.lightRooks) this.capturedWhitePieceStack.push(1);
+                    if (target & this.lightKnights) this.capturedWhitePieceStack.push(2);
+                    if (target & this.lightBishops) this.capturedWhitePieceStack.push(3);
+                    if (target & this.lightQueen) this.capturedWhitePieceStack.push(4);
+                    this.lightPawns &= ~target;
+                    this.lightRooks &= ~target;
+                    this.lightKnights &= ~target;
+                    this.lightBishops &= ~target;
+                    this.lightQueen &= ~target;
+                }
             }
         }
+
+        this.lightEnPassantTarget = 0n;
+        this.darkEnPassantTarget = 0n;
 
         if (start & this.lightPawns) {
             this.lightPawns &= ~start;
             this.lightPawns |= target;
+            if (target & 0x000000ff00000000n && start & 0x00ff000000000000n)
+                this.darkEnPassantTarget = target << 8n;
         }
         if (start & this.lightRooks) {
             this.lightRooks &= ~start;
@@ -976,6 +980,8 @@ class UpdatedBoard {
         if (start & this.darkPawns) {
             this.darkPawns &= ~start;
             this.darkPawns |= target;
+            if (target & 0x00000000ff000000n && start & 0x000000000000ff00n)
+                this.lightEnPassantTarget = target >> 8n;
         }
         if (start & this.darkRooks) {
             this.darkRooks &= ~start;
@@ -1071,21 +1077,31 @@ class UpdatedBoard {
             this.darkKing |= target;
         }
 
-        if (move.getButterflyIndex() == CAPTURE_FLAG) {
+        if (move.getButterflyIndex() & CAPTURE_FLAG) {
             if (start & this.lightPieces) {
-                let piece = this.capturedBlackPieceStack.pop();
-                if (piece == 0) this.darkPawns |= start;
-                else if (piece == 1) this.darkRooks |= start;
-                else if (piece == 2) this.darkKnights |= start;
-                else if (piece == 3) this.darkBishops |= start;
-                else if (piece == 4) this.darkQueen |= start;
+                if (move.getButterflyIndex() == 0b0101) {
+                    //EP Capture
+                    console.log("En Passant Unmake");
+                    this.darkPawns |= start << 8n;
+                } else {
+                    let piece = this.capturedBlackPieceStack.pop();
+                    if (piece == 0) this.darkPawns |= start;
+                    else if (piece == 1) this.darkRooks |= start;
+                    else if (piece == 2) this.darkKnights |= start;
+                    else if (piece == 3) this.darkBishops |= start;
+                    else if (piece == 4) this.darkQueen |= start;
+                }
             } else {
-                let piece = this.capturedWhitePieceStack.pop();
-                if (piece == 0) this.lightPawns |= start;
-                else if (piece == 1) this.lightRooks |= start;
-                else if (piece == 2) this.lightKnights |= start;
-                else if (piece == 3) this.lightBishops |= start;
-                else if (piece == 4) this.lightQueen |= start;
+                if (move.getButterflyIndex() == 0b0101) {
+                    this.lightPawns |= start >> 8n;
+                } else {
+                    let piece = this.capturedWhitePieceStack.pop();
+                    if (piece == 0) this.lightPawns |= start;
+                    else if (piece == 1) this.lightRooks |= start;
+                    else if (piece == 2) this.lightKnights |= start;
+                    else if (piece == 3) this.lightBishops |= start;
+                    else if (piece == 4) this.lightQueen |= start;
+                }
             }
         }
 
@@ -1116,15 +1132,13 @@ class UpdatedBoard {
         if (this.playerBoolean) moves = this.getWhiteMoves();
         else moves = this.getBlackMoves();
 
-        if (moves.length == 0) this.mateCount++;
-
         let count = 0;
         for (let i = 0; i < moves.length; i++) {
             this.makeMove(moves[i]);
             //this.updateGUI();
             //window.prompt("next");
             count += this.perft(depth - 1);
-            if (depth == 3) this.divideArr.push(count);
+            if (depth == PERFT_DEPTH) this.divideArr.push(count);
             this.unmakeMove(moves[i]);
             //this.updateGUI();
         }
@@ -1171,6 +1185,6 @@ class UpdatedBoard {
 let board15 = new UpdatedBoard();
 console.log("In second thing");
 
-console.log(board15.perft(3));
+console.log(board15.perft(PERFT_DEPTH));
 board15.updateGUI();
-console.log(board15.captureCount, board15.divideArr);
+console.log(board15.captureCount, getArrayDiff(board15.divideArr));
