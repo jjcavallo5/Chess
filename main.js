@@ -19,6 +19,8 @@ var darkKing = document.querySelector(".DKing");
 var lightQueen = document.querySelector(".LQueen");
 var darkQueen = document.querySelector(".DQueen");
 
+var board15 = new UpdatedBoard();
+
 function SetBoard() {
     let node;
 
@@ -112,6 +114,50 @@ function SetBoard() {
     InitEventListeners();
 }
 
+function getSquareIndexFromClassName(sq_string) {
+    let file = sq_string.charCodeAt(0) - 65;
+    return file + 8 * parseInt(sq_string[1] - 1);
+}
+
+function isLegalMove(start_sq, target_sq) {
+    console.log(start_sq, target_sq);
+    let legal;
+    let start = getSquareIndexFromClassName(start_sq);
+    let target = getSquareIndexFromClassName(target_sq);
+    if (board15.playerBoolean) {
+        legal = board15.getWhiteMoves();
+        console.log("white");
+    } else {
+        legal = board15.getBlackMoves();
+    }
+
+    console.log(legal);
+
+    for (let i = 0; i < legal.length; i++) {
+        if (legal[i].from == start && legal[i].target == target) {
+            board15.makeMove(legal[i]);
+
+            if (legal[i].flags == CAPTURE_FLAG) {
+                let target = document.querySelector("." + target_sq);
+                let container = document.querySelector(".PieceContainer");
+                container.append(target.children[0]);
+                target.classList.remove(target.classList[3]);
+            }
+
+            if (legal[i].flags == CASTLE_SHORT_FLAG || legal[i].flags == CASTLE_LONG_FLAG) {
+                checkCastles(start_sq, target_sq);
+            }
+
+            if (legal[i].flags == EN_PASSANT_FLAG) {
+                checkEnPassants(start_sq, target_sq);
+            }
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function dragStart(e, element, elementClass) {
     // (1) prepare to moving: make absolute and on top by z-index
     initSquare = element.parentElement.classList[2];
@@ -171,7 +217,7 @@ function dragStart(e, element, elementClass) {
     };
 }
 
-//SetBoard();
+SetBoard();
 
 function getSquare(x, y) {
     board = document.querySelector(".ChessBoard");
@@ -344,4 +390,90 @@ function InitEventListeners() {
     D8Queen.addEventListener("mousedown", (e) => {
         dragStart(e, D8Queen, "DQueen");
     });
+}
+
+// * CHECK CASTLES * //
+function checkCastles(oldSquare, newSquare) {
+    //King not on correct square
+    if (oldSquare != "E1" && oldSquare != "E8") return;
+
+    if (oldSquare == "E1" && newSquare == "G1") {
+        //Castling requested and approved, move rook.
+        let rook = document.querySelector("#H1Rook");
+        let rookTarget = document.querySelector(".F1");
+        rookTarget.classList.add("Occupied");
+        rookTarget.classList.add("LRook");
+        rook.parentElement.classList.remove("LRook");
+        rook.parentElement.classList.remove("Occupied");
+        rookTarget.append(rook);
+        return;
+    }
+
+    if (oldSquare == "E1" && newSquare == "C1") {
+        //Castling requested and approved, move rook.
+        let rook = document.querySelector("#A1Rook");
+        let rookTarget = document.querySelector(".D1");
+        rookTarget.classList.add("Occupied");
+        rookTarget.classList.add("LRook");
+        rook.parentElement.classList.remove("LRook");
+        rook.parentElement.classList.remove("Occupied");
+        rookTarget.append(rook);
+        return;
+    }
+
+    if (oldSquare == "E8" && newSquare == "G8") {
+        //Castling requested and approved, move rook.
+        let rook = document.querySelector("#H8Rook");
+        let rookTarget = document.querySelector(".F8");
+        rookTarget.classList.add("Occupied");
+        rookTarget.classList.add("DRook");
+        rook.parentElement.classList.remove("DRook");
+        rook.parentElement.classList.remove("Occupied");
+        rookTarget.append(rook);
+        return;
+    }
+
+    if (oldSquare == "E8" && newSquare == "C8") {
+        //Castling requested and approved, move rook.
+        let rook = document.querySelector("#A8Rook");
+        let rookTarget = document.querySelector(".D8");
+        rookTarget.classList.add("Occupied");
+        rookTarget.classList.add("LRook");
+        rook.parentElement.classList.remove("LRook");
+        rook.parentElement.classList.remove("Occupied");
+        rookTarget.append(rook);
+        return;
+    }
+}
+
+// * CHECK EN PASSANT * //
+function checkEnPassants(oldSquare, newSquare, element) {
+    //Eliminates everything but pawns
+    if (!element.id.includes("Pawn")) return;
+
+    //Eliminates pawns on all other squares
+    if (oldSquare[1] != "4" && oldSquare[1] != "5") return;
+
+    //Get elements from DOM
+    let newSquareDiv = document.querySelector("." + newSquare);
+    let container = document.querySelector(".PieceContainer");
+
+    if (oldSquare[1] == "5" && newSquare[1] == "6") {
+        if (!newSquareDiv.classList.contains("Occupied") && oldSquare[0] != newSquare[0]) {
+            //En Passant Requested and approved
+            let clearSquare = document.querySelector("." + newSquare[0] + oldSquare[1]);
+            container.append(clearSquare.children[0]);
+            clearSquare.classList.remove(clearSquare.classList[3], clearSquare.classList[4]);
+        }
+        return;
+    }
+
+    if (oldSquare[1] == "4" && newSquare[1] == "3") {
+        if (!newSquareDiv.classList.contains("Occupied") && oldSquare[0] != newSquare[0]) {
+            //En Passant Requested and approved
+            let clearSquare = document.querySelector("." + newSquare[0] + oldSquare[1]);
+            container.append(clearSquare.children[0]);
+            clearSquare.classList.remove(clearSquare.classList[3], clearSquare.classList[4]);
+        }
+    }
 }
