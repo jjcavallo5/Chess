@@ -20,8 +20,6 @@ class Move {
     }
 }
 
-//Encode Piece Type, Piece index in array, and Piece Color
-
 class UpdatedBoard {
     constructor() {
         this.boardArray = [
@@ -294,7 +292,6 @@ class UpdatedBoard {
         this.moveTargets[15] = NOne(NWOne(_knights)) & targetMask;
 
         //Pawns
-        //print(targetMask);
         let _targets = (this.darkPieces & targetMask) | (this.lightEnPassantTarget & targetMask);
         if (!_nullIfCheck && this.lightEnPassantTarget)
             if (NWOne(this.lightKing) & this.darkPawns || NEOne(this.lightKing) & this.darkPawns)
@@ -319,10 +316,11 @@ class UpdatedBoard {
         this.moveTargets[5] |= SWOne(this.lightKing) & targetMask;
         this.moveTargets[6] |= WOne(this.lightKing) & targetMask;
         this.moveTargets[7] |= NWOne(this.lightKing) & targetMask;
+
         //Castling
         if (this.lightCastleRights[0] && this.lightKing & binarySquares[4]) {
             if (!(anyBlackAttack & wKingCastleMask) && !(this.occupied & wKingCastleMask))
-                this.moveList.push(new Move(4, 6, 0b0010));
+                this.moveList.push(new Move(4, 6, CASTLE_SHORT_FLAG));
         }
         if (this.lightCastleRights[1] && this.lightKing & binarySquares[4]) {
             if (
@@ -332,7 +330,7 @@ class UpdatedBoard {
                     0b0111000000000000000000000000000000000000000000000000000000000000n
                 )
             )
-                this.moveList.push(new Move(4, 2, 0b0011));
+                this.moveList.push(new Move(4, 2, CASTLE_LONG_FLAG));
         }
 
         let mask = maskInit;
@@ -661,10 +659,11 @@ class UpdatedBoard {
         this.moveTargets[5] |= SWOne(this.darkKing) & targetMask;
         this.moveTargets[6] |= WOne(this.darkKing) & targetMask;
         this.moveTargets[7] |= NWOne(this.darkKing) & targetMask;
+
         //Castling
         if (this.darkCastleRights[0] && this.darkKing & binarySquares[60]) {
             if (!(anyWhiteAttack & bKingCastleMask) && !(this.occupied & bKingCastleMask))
-                this.moveList.push(new Move(60, 62, 0b0010));
+                this.moveList.push(new Move(60, 62, CASTLE_SHORT_FLAG));
         }
         if (this.darkCastleRights[1] && this.darkKing & binarySquares[60]) {
             if (
@@ -674,7 +673,7 @@ class UpdatedBoard {
                     0b0000000000000000000000000000000000000000000000000000000001110000n
                 )
             )
-                this.moveList.push(new Move(60, 58, 0b0011));
+                this.moveList.push(new Move(60, 58, CASTLE_LONG_FLAG));
         }
 
         let mask = maskInit;
@@ -939,9 +938,11 @@ class UpdatedBoard {
             }
         }
 
+        //Reset EP Targets
         this.lightEnPassantTarget = 0n;
         this.darkEnPassantTarget = 0n;
 
+        //Check Pawn Moves
         if (start & this.lightPawns) {
             this.lightPawns &= ~start;
             this.lightPawns |= target;
@@ -975,6 +976,8 @@ class UpdatedBoard {
                 }
             }
         }
+
+        //Check Rook Moves
         if (start & this.lightRooks) {
             this.lightRooks &= ~start;
             this.lightRooks |= target;
@@ -988,18 +991,26 @@ class UpdatedBoard {
                 this.lightCastleBroken = true;
             }
         }
+
+        //Check Bishop Moves
         if (start & this.lightBishops) {
             this.lightBishops &= ~start;
             this.lightBishops |= target;
         }
+
+        //Check Queen Moves
         if (start & this.lightQueen) {
             this.lightQueen &= ~start;
             this.lightQueen |= target;
         }
+
+        //Check Knight Moves
         if (start & this.lightKnights) {
             this.lightKnights &= ~start;
             this.lightKnights |= target;
         }
+
+        //Check King Moves
         if (start & this.lightKing) {
             this.lightKing &= ~start;
             this.lightKing |= target;
@@ -1007,6 +1018,8 @@ class UpdatedBoard {
             this.lightCastleRights = [false, false];
             this.lightCastleBroken = true;
         }
+
+        //Check Pawn Moves
         if (start & this.darkPawns) {
             this.darkPawns &= ~start;
             this.darkPawns |= target;
@@ -1040,6 +1053,8 @@ class UpdatedBoard {
                 }
             }
         }
+
+        //Check Rook Moves
         if (start & this.darkRooks) {
             this.darkRooks &= ~start;
             this.darkRooks |= target;
@@ -1053,18 +1068,26 @@ class UpdatedBoard {
                 this.darkCastleBroken = true;
             }
         }
+
+        //Check Bishop Moves
         if (start & this.darkBishops) {
             this.darkBishops &= ~start;
             this.darkBishops |= target;
         }
+
+        //Check Queen Moves
         if (start & this.darkQueen) {
             this.darkQueen &= ~start;
             this.darkQueen |= target;
         }
+
+        //Check Knight Moves
         if (start & this.darkKnights) {
             this.darkKnights &= ~start;
             this.darkKnights |= target;
         }
+
+        //Check King Moves
         if (start & this.darkKing) {
             this.darkKing &= ~start;
             this.darkKing |= target;
@@ -1073,6 +1096,7 @@ class UpdatedBoard {
             this.darkCastleBroken = true;
         }
 
+        //Re-Evaluate Pieces
         this.lightPieces =
             this.lightKnights |
             this.lightPawns |
@@ -1089,11 +1113,14 @@ class UpdatedBoard {
             this.darkBishops;
         this.occupied = this.lightPieces | this.darkPieces;
 
+        //Update Player, Empty move list
         this.playerBoolean = !this.playerBoolean;
         this.moveList = [];
     }
 
     unmakeMove(move) {
+        // * ONLY USED IN PERFT
+
         let start = getBinFromSquare(move.target);
         let target = getBinFromSquare(move.from);
 
@@ -1233,6 +1260,9 @@ class UpdatedBoard {
     }
 
     perft(depth) {
+        // * Recursively plays and unplays moves
+        // -> Used to test rule implementation
+
         if (depth == 0) {
             return 1;
         }
@@ -1258,6 +1288,8 @@ class UpdatedBoard {
     }
 
     updateGUI() {
+        // ! NOT USED
+
         let mask = maskInit;
         let sq = "";
         let div;
