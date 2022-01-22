@@ -1,6 +1,11 @@
 const noHMask = 0b1111111011111110111111101111111011111110111111101111111011111110n;
 const noAMask = 0b0111111101111111011111110111111101111111011111110111111101111111n;
 const maskInit = 0b1000000000000000000000000000000000000000000000000000000000000000n;
+const boardMask = 0b1111111111111111111111111111111111111111111111111111111111111111n;
+const wKingCastleMask = 0b0000011000000000000000000000000000000000000000000000000000000000n;
+const wQueenCastleMask = 0b0011000000000000000000000000000000000000000000000000000000000000n;
+const bKingCastleMask = 0b0000000000000000000000000000000000000000000000000000000000000110n;
+const bQueenCastleMask = 0b0000000000000000000000000000000000000000000000000000000000110000n;
 
 var rayAttacksFromSquare = [];
 var lightPawnAttacksFromSquare = [];
@@ -10,6 +15,74 @@ var knightAttacksFromSquare = [];
 var bishopAttacksFromSquare = [];
 var queenAttacksFromSquare = [];
 var kingAttacksFromSquare = [];
+var binarySquares = [];
+
+const SQUARE_LOOKUP = [
+    "a1",
+    "b1",
+    "c1",
+    "d1",
+    "e1",
+    "f1",
+    "g1",
+    "h1",
+    "a2",
+    "b2",
+    "c2",
+    "d2",
+    "e2",
+    "f2",
+    "g2",
+    "h2",
+    "a3",
+    "b3",
+    "c3",
+    "d3",
+    "e3",
+    "f3",
+    "g3",
+    "h3",
+    "a4",
+    "b4",
+    "c4",
+    "d4",
+    "e4",
+    "f4",
+    "g4",
+    "h4",
+    "a5",
+    "b5",
+    "c5",
+    "d5",
+    "e5",
+    "f5",
+    "g5",
+    "h5",
+    "a6",
+    "b6",
+    "c6",
+    "d6",
+    "e6",
+    "f6",
+    "g6",
+    "h6",
+    "a7",
+    "b7",
+    "c7",
+    "d7",
+    "e7",
+    "f7",
+    "g7",
+    "h7",
+    "a8",
+    "b8",
+    "c8",
+    "d8",
+    "e8",
+    "f8",
+    "g8",
+    "h8",
+];
 
 //Generate Tables on Launch
 function generateRays() {
@@ -137,6 +210,7 @@ function generateRays() {
     generateKnightAttacks();
     generateKingAttacks();
     generatePawnAttacks();
+    generateSquares();
 }
 
 function generateRookAttacks() {
@@ -301,6 +375,14 @@ function generatePawnAttacks() {
     }
 }
 
+function generateSquares() {
+    let mask = maskInit;
+    for (let i = 0; i < 64; i++) {
+        binarySquares.push(mask);
+        mask >>= 1n;
+    }
+}
+
 //General Helper Functions
 function NOne(bin) {
     return bin >> 8n;
@@ -365,12 +447,7 @@ function getSquareIndex(bin) {
     return 0;
 }
 function getBinFromSquare(sq) {
-    let mask = maskInit;
-    for (let i = 0; i < 64; i++) {
-        if (getSquareIndex(mask) == sq) return mask;
-        mask >>= 1n;
-    }
-    return 0n;
+    return binarySquares[sq];
 }
 function slidingNorthRay(bin, occ) {
     let sq = getSquareIndex(bin);
