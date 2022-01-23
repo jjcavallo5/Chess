@@ -24,6 +24,16 @@
     width: 200px;
 }
 
+.PromoSelector {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    z-index: 2;
+    left: 0;
+    top: 0;
+    background-color: #22272e;
+}
+
 #SetBoard {
     position: absolute;
     top: 50px;

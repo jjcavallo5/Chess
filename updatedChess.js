@@ -2,6 +2,10 @@ const CAPTURE_FLAG = 0b0100;
 const CASTLE_SHORT_FLAG = 0b0010;
 const CASTLE_LONG_FLAG = 0b0011;
 const EN_PASSANT_FLAG = 0b0101;
+const KNIGHT_PROMO = 0b1000;
+const BISHOP_PROMO = 0b1001;
+const ROOK_PROMO = 0b1010;
+const QUEEN_PROMO = 0b1011;
 const PERFT_DEPTH = 3;
 
 class Move {
@@ -337,6 +341,7 @@ class UpdatedBoard {
         let targetSquares;
         let endSq;
         let flag = 0b0000;
+        let _rank8 = 0x00000000000000ffn;
         for (let i = 0; i < 64; i++) {
             if (this.lightPieces & mask) {
                 //NORTH
@@ -344,7 +349,37 @@ class UpdatedBoard {
                 while (targetSquares) {
                     endSq = MSB1(targetSquares);
                     if (endSq & this.darkPieces) flag = 0b0100;
-                    this.moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
+
+                    //Promotion
+                    if (mask & this.lightPawns && endSq & _rank8) {
+                        this.moveList.push(
+                            new Move(
+                                getSquareIndex(mask),
+                                getSquareIndex(endSq),
+                                KNIGHT_PROMO | flag
+                            )
+                        );
+                        this.moveList.push(
+                            new Move(
+                                getSquareIndex(mask),
+                                getSquareIndex(endSq),
+                                BISHOP_PROMO | flag
+                            )
+                        );
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(endSq), ROOK_PROMO | flag)
+                        );
+                        this.moveList.push(
+                            new Move(
+                                getSquareIndex(mask),
+                                getSquareIndex(endSq),
+                                QUEEN_PROMO | flag
+                            )
+                        );
+                    } else
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(endSq), flag)
+                        );
                     targetSquares &= ~endSq;
                     flag = 0b0000;
                 }
@@ -357,7 +392,38 @@ class UpdatedBoard {
                     else if (endSq & this.lightEnPassantTarget && SWOne(endSq) & this.lightPawns) {
                         flag = 0b0101;
                     }
-                    this.moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
+
+                    //Promotion
+                    if (mask & this.lightPawns && endSq & _rank8) {
+                        console.log("Promo");
+                        this.moveList.push(
+                            new Move(
+                                getSquareIndex(mask),
+                                getSquareIndex(endSq),
+                                KNIGHT_PROMO | flag
+                            )
+                        );
+                        this.moveList.push(
+                            new Move(
+                                getSquareIndex(mask),
+                                getSquareIndex(endSq),
+                                BISHOP_PROMO | flag
+                            )
+                        );
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(endSq), ROOK_PROMO | flag)
+                        );
+                        this.moveList.push(
+                            new Move(
+                                getSquareIndex(mask),
+                                getSquareIndex(endSq),
+                                QUEEN_PROMO | flag
+                            )
+                        );
+                    } else
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(endSq), flag)
+                        );
                     targetSquares &= ~endSq;
                     flag = 0b0000;
                 }
@@ -420,7 +486,37 @@ class UpdatedBoard {
                     else if (endSq & this.lightEnPassantTarget && SEOne(endSq) & this.lightPawns) {
                         flag = 0b0101;
                     }
-                    this.moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
+
+                    //Promotion
+                    if (mask & this.lightPawns && endSq & _rank8) {
+                        this.moveList.push(
+                            new Move(
+                                getSquareIndex(mask),
+                                getSquareIndex(endSq),
+                                KNIGHT_PROMO | flag
+                            )
+                        );
+                        this.moveList.push(
+                            new Move(
+                                getSquareIndex(mask),
+                                getSquareIndex(endSq),
+                                BISHOP_PROMO | flag
+                            )
+                        );
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(endSq), ROOK_PROMO | flag)
+                        );
+                        this.moveList.push(
+                            new Move(
+                                getSquareIndex(mask),
+                                getSquareIndex(endSq),
+                                QUEEN_PROMO | flag
+                            )
+                        );
+                    } else
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(endSq), flag)
+                        );
                     targetSquares &= ~endSq;
                     flag = 0b0000;
                 }
@@ -680,6 +776,7 @@ class UpdatedBoard {
         let targetSquares;
         let endSq;
         let flag = 0b0000;
+        let _rank1 = 0xff00000000000000n;
         for (let i = 0; i < 64; i++) {
             if (this.darkPieces & mask) {
                 //NORTH
@@ -720,7 +817,36 @@ class UpdatedBoard {
                     else if (endSq & this.darkEnPassantTarget && NWOne(endSq) & this.darkPawns) {
                         flag = 0b0101;
                     }
-                    this.moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
+                    //Promotion
+                    if (mask & this.darkPawns && endSq & _rank1) {
+                        this.moveList.push(
+                            new Move(
+                                getSquareIndex(mask),
+                                getSquareIndex(endSq),
+                                KNIGHT_PROMO | flag
+                            )
+                        );
+                        this.moveList.push(
+                            new Move(
+                                getSquareIndex(mask),
+                                getSquareIndex(endSq),
+                                BISHOP_PROMO | flag
+                            )
+                        );
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(endSq), ROOK_PROMO | flag)
+                        );
+                        this.moveList.push(
+                            new Move(
+                                getSquareIndex(mask),
+                                getSquareIndex(endSq),
+                                QUEEN_PROMO | flag
+                            )
+                        );
+                    } else
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(endSq), flag)
+                        );
                     targetSquares &= ~endSq;
                     flag = 0b0000;
                 }
@@ -730,7 +856,36 @@ class UpdatedBoard {
                 while (targetSquares) {
                     endSq = LSB1(targetSquares);
                     if (endSq & this.lightPieces) flag = 0b0100;
-                    this.moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
+                    //Promotion
+                    if (mask & this.darkPawns && endSq & _rank1) {
+                        this.moveList.push(
+                            new Move(
+                                getSquareIndex(mask),
+                                getSquareIndex(endSq),
+                                KNIGHT_PROMO | flag
+                            )
+                        );
+                        this.moveList.push(
+                            new Move(
+                                getSquareIndex(mask),
+                                getSquareIndex(endSq),
+                                BISHOP_PROMO | flag
+                            )
+                        );
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(endSq), ROOK_PROMO | flag)
+                        );
+                        this.moveList.push(
+                            new Move(
+                                getSquareIndex(mask),
+                                getSquareIndex(endSq),
+                                QUEEN_PROMO | flag
+                            )
+                        );
+                    } else
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(endSq), flag)
+                        );
                     targetSquares &= ~endSq;
                     flag = 0b0000;
                 }
@@ -743,7 +898,36 @@ class UpdatedBoard {
                     else if (endSq & this.darkEnPassantTarget && NEOne(endSq) & this.darkPawns) {
                         flag = 0b0101;
                     }
-                    this.moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
+                    //Promotion
+                    if (mask & this.darkPawns && endSq & _rank1) {
+                        this.moveList.push(
+                            new Move(
+                                getSquareIndex(mask),
+                                getSquareIndex(endSq),
+                                KNIGHT_PROMO | flag
+                            )
+                        );
+                        this.moveList.push(
+                            new Move(
+                                getSquareIndex(mask),
+                                getSquareIndex(endSq),
+                                BISHOP_PROMO | flag
+                            )
+                        );
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(endSq), ROOK_PROMO | flag)
+                        );
+                        this.moveList.push(
+                            new Move(
+                                getSquareIndex(mask),
+                                getSquareIndex(endSq),
+                                QUEEN_PROMO | flag
+                            )
+                        );
+                    } else
+                        this.moveList.push(
+                            new Move(getSquareIndex(mask), getSquareIndex(endSq), flag)
+                        );
                     targetSquares &= ~endSq;
                     flag = 0b0000;
                 }
@@ -935,6 +1119,31 @@ class UpdatedBoard {
             } else {
                 this.darkRooks &= ~binarySquares[56];
                 this.darkRooks |= binarySquares[59];
+            }
+        }
+
+        //Promotions
+        if (move.getButterflyIndex() & 0b1000) {
+            if (start & this.lightPawns) {
+                this.lightPawns &= ~target;
+                if (move.getButterflyIndex() == 0b1000) this.lightKnights |= target;
+                else if (move.getButterflyIndex() == 0b1001) this.lightBishops |= target;
+                else if (move.getButterflyIndex() == 0b1010) this.lightRooks |= target;
+                else if (move.getButterflyIndex() == 0b1011) this.lightQueen |= target;
+                else if (move.getButterflyIndex() == 0b1100) this.lightKnights |= target;
+                else if (move.getButterflyIndex() == 0b1101) this.lightBishops |= target;
+                else if (move.getButterflyIndex() == 0b1110) this.lightRooks |= target;
+                else if (move.getButterflyIndex() == 0b1111) this.lightQueen |= target;
+            } else {
+                this.darkPawns &= ~target;
+                if (move.getButterflyIndex() == 0b1000) this.darkKnights |= target;
+                else if (move.getButterflyIndex() == 0b1001) this.darkBishops |= target;
+                else if (move.getButterflyIndex() == 0b1010) this.darkRooks |= target;
+                else if (move.getButterflyIndex() == 0b1011) this.darkQueen |= target;
+                else if (move.getButterflyIndex() == 0b1100) this.darkKnights |= target;
+                else if (move.getButterflyIndex() == 0b1101) this.darkBishops |= target;
+                else if (move.getButterflyIndex() == 0b1110) this.darkRooks |= target;
+                else if (move.getButterflyIndex() == 0b1111) this.darkQueen |= target;
             }
         }
 
@@ -1146,6 +1355,23 @@ class UpdatedBoard {
                 this.darkRooks &= ~binarySquares[59];
                 this.darkRooks |= binarySquares[56];
                 this.darkCastleRights[1] = true;
+            }
+        }
+
+        //Promotions
+        if (move.getButterflyIndex() & 0b1000) {
+            if (start & this.lightPieces) {
+                this.lightPawns |= target;
+                this.lightKnights &= ~start;
+                this.lightBishops &= ~start;
+                this.lightRooks &= ~start;
+                this.lightQueens &= ~start;
+            } else {
+                this.darkPawns |= target;
+                this.darkKnights &= ~start;
+                this.darkBishops &= ~start;
+                this.darkRooks &= ~start;
+                this.darkQueen &= ~start;
             }
         }
 

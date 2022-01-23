@@ -119,7 +119,65 @@ function getSquareIndexFromClassName(sq_string) {
     return file + 8 * parseInt(sq_string[1] - 1);
 }
 
-function isLegalMove(start_sq, target_sq) {
+function checkPromotion(legalMoves, i, target_sq, element) {
+    let color;
+    color = target_sq[1] == 8 ? "white" : "black";
+    let promo = document.getElementsByClassName(color + " PromoSelector");
+    promo[0].style.display = "flex";
+
+    //Display and position promo menus
+    if (color == "white") {
+        promo[0].style.left = element.offsetLeft + "px";
+        promo[0].style.top = element.offsetTop + "px";
+    } else {
+        promo[0].style.left = element.offsetLeft + "px";
+        promo[0].style.top = element.offsetTop - 300 + "px";
+    }
+
+    let index;
+    if (color == "white") index = 0;
+    else index = 1;
+
+    //Add event listeners for clicks on promo pieces,
+    //Call appropriate "makeMove" function
+    document.getElementsByClassName("QueenPromo")[index].addEventListener("click", () => {
+        board15.makeMove(legalMoves[i + 3]);
+        promo[0].style.display = "none";
+        document.getElementsByClassName(target_sq)[0].firstChild.src =
+            "images/" + color + "Queen.png";
+    });
+
+    document.getElementsByClassName("KnightPromo")[index].addEventListener("click", () => {
+        board15.makeMove(legalMoves[i]);
+        promo[0].style.display = "none";
+        document.getElementsByClassName(target_sq)[0].firstChild.src =
+            "images/" + color + "Knight.png";
+    });
+
+    document.getElementsByClassName("BishopPromo")[index].addEventListener("click", () => {
+        board15.makeMove(legalMoves[i + 1]);
+        promo[0].style.display = "none";
+        document.getElementsByClassName(target_sq)[0].firstChild.src =
+            "images/" + color + "Bishop.png";
+    });
+
+    document.getElementsByClassName("RookPromo")[index].addEventListener("click", () => {
+        board15.makeMove(legalMoves[i + 2]);
+        promo[0].style.display = "none";
+        document.getElementsByClassName(target_sq)[0].firstChild.src =
+            "images/" + color + "Rook.png";
+    });
+
+    //Check for promo capture
+    if (legalMoves[i].flags & CAPTURE_FLAG) {
+        let target = document.querySelector("." + target_sq);
+        let container = document.querySelector(".PieceContainer");
+        container.append(target.children[0]);
+        target.classList.remove(target.classList[3]);
+    }
+}
+
+function isLegalMove(start_sq, target_sq, element) {
     console.log(start_sq, target_sq);
     let legal;
     let start = getSquareIndexFromClassName(start_sq);
@@ -131,30 +189,42 @@ function isLegalMove(start_sq, target_sq) {
         legal = board15.getBlackMoves();
     }
 
-    console.log(legal);
-
     for (let i = 0; i < legal.length; i++) {
+        //Check if move is found
         if (legal[i].from == start && legal[i].target == target) {
+            //Check promotion
+            if (legal[i].flags & 0b1000) {
+                checkPromotion(legal, i, target_sq, element);
+                return true;
+            }
+
+            //Update Board State
             board15.makeMove(legal[i]);
 
-            if (legal[i].flags == CAPTURE_FLAG) {
+            //Check Captures, update UI accordingly
+            if (legal[i].flags & CAPTURE_FLAG) {
                 let target = document.querySelector("." + target_sq);
                 let container = document.querySelector(".PieceContainer");
                 container.append(target.children[0]);
                 target.classList.remove(target.classList[3]);
             }
 
+            //Check castles, update UI accordingly
             if (legal[i].flags == CASTLE_SHORT_FLAG || legal[i].flags == CASTLE_LONG_FLAG) {
                 checkCastles(start_sq, target_sq);
             }
 
+            //Check En Passant, update UI accordingly
             if (legal[i].flags == EN_PASSANT_FLAG) {
                 checkEnPassants(start_sq, target_sq);
             }
+
+            //Move is legal, return
             return true;
         }
     }
 
+    //Move not found, return without taking action
     return false;
 }
 
@@ -162,7 +232,7 @@ function dragStart(e, element, elementClass) {
     // (1) prepare to moving: make absolute and on top by z-index
     initSquare = element.parentElement.classList[2];
     element.style.position = "absolute";
-    element.style.zIndex = 1000;
+    element.style.zIndex = 1;
 
     // move it out of any current parents directly into body
     // to make it positioned relative to the body
@@ -447,10 +517,7 @@ function checkCastles(oldSquare, newSquare) {
 }
 
 // * CHECK EN PASSANT * //
-function checkEnPassants(oldSquare, newSquare, element) {
-    //Eliminates everything but pawns
-    if (!element.id.includes("Pawn")) return;
-
+function checkEnPassants(oldSquare, newSquare) {
     //Eliminates pawns on all other squares
     if (oldSquare[1] != "4" && oldSquare[1] != "5") return;
 
