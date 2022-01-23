@@ -20,6 +20,7 @@ var lightQueen = document.querySelector(".LQueen");
 var darkQueen = document.querySelector(".DQueen");
 
 var board15 = new UpdatedBoard();
+SetBoard();
 
 function SetBoard() {
     let node;
@@ -135,8 +136,14 @@ function checkPromotion(legalMoves, i, target_sq, element) {
     }
 
     let index;
-    if (color == "white") index = 0;
-    else index = 1;
+    let firstChar;
+    if (color == "white") {
+        index = 0;
+        firstChar = "L";
+    } else {
+        index = 1;
+        firstChar = "D";
+    }
 
     //Add event listeners for clicks on promo pieces,
     //Call appropriate "makeMove" function
@@ -145,6 +152,7 @@ function checkPromotion(legalMoves, i, target_sq, element) {
         promo[0].style.display = "none";
         document.getElementsByClassName(target_sq)[0].firstChild.src =
             "images/" + color + "Queen.png";
+        document.getElementsByClassName(target_sq)[0].classList.add(firstChar + "Queen");
     });
 
     document.getElementsByClassName("KnightPromo")[index].addEventListener("click", () => {
@@ -152,6 +160,7 @@ function checkPromotion(legalMoves, i, target_sq, element) {
         promo[0].style.display = "none";
         document.getElementsByClassName(target_sq)[0].firstChild.src =
             "images/" + color + "Knight.png";
+        document.getElementsByClassName(target_sq)[0].classList.add(firstChar + "Knight");
     });
 
     document.getElementsByClassName("BishopPromo")[index].addEventListener("click", () => {
@@ -159,6 +168,7 @@ function checkPromotion(legalMoves, i, target_sq, element) {
         promo[0].style.display = "none";
         document.getElementsByClassName(target_sq)[0].firstChild.src =
             "images/" + color + "Bishop.png";
+        document.getElementsByClassName(target_sq)[0].classList.add(firstChar + "Bishop");
     });
 
     document.getElementsByClassName("RookPromo")[index].addEventListener("click", () => {
@@ -166,7 +176,10 @@ function checkPromotion(legalMoves, i, target_sq, element) {
         promo[0].style.display = "none";
         document.getElementsByClassName(target_sq)[0].firstChild.src =
             "images/" + color + "Rook.png";
+        document.getElementsByClassName(target_sq)[0].classList.add(firstChar + "Rook");
     });
+
+    document.getElementsByClassName(target_sq)[0].classList.remove(firstChar + "Pawn");
 
     //Check for promo capture
     if (legalMoves[i].flags & CAPTURE_FLAG) {
@@ -286,8 +299,6 @@ function dragStart(e, element, elementClass) {
         return false;
     };
 }
-
-SetBoard();
 
 function getSquare(x, y) {
     board = document.querySelector(".ChessBoard");

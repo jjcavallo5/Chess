@@ -1036,6 +1036,7 @@ class UpdatedBoard {
     makeMove(move) {
         let start = getBinFromSquare(move.from);
         let target = getBinFromSquare(move.target);
+        console.log(move.flags);
 
         this.lightCastleBroken = false;
         this.darkCastleBroken = false;
@@ -1126,6 +1127,7 @@ class UpdatedBoard {
         if (move.getButterflyIndex() & 0b1000) {
             if (start & this.lightPawns) {
                 this.lightPawns &= ~target;
+                this.lightPawns &= ~start;
                 if (move.getButterflyIndex() == 0b1000) this.lightKnights |= target;
                 else if (move.getButterflyIndex() == 0b1001) this.lightBishops |= target;
                 else if (move.getButterflyIndex() == 0b1010) this.lightRooks |= target;
@@ -1136,6 +1138,7 @@ class UpdatedBoard {
                 else if (move.getButterflyIndex() == 0b1111) this.lightQueen |= target;
             } else {
                 this.darkPawns &= ~target;
+                this.darkPawns &= ~start;
                 if (move.getButterflyIndex() == 0b1000) this.darkKnights |= target;
                 else if (move.getButterflyIndex() == 0b1001) this.darkBishops |= target;
                 else if (move.getButterflyIndex() == 0b1010) this.darkRooks |= target;
@@ -1325,6 +1328,9 @@ class UpdatedBoard {
         //Update Player, Empty move list
         this.playerBoolean = !this.playerBoolean;
         this.moveList = [];
+
+        print(this.lightQueen);
+        print(this.lightPawns);
     }
 
     unmakeMove(move) {
