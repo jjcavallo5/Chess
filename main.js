@@ -190,6 +190,25 @@ function checkPromotion(legalMoves, i, target_sq, element) {
     }
 }
 
+function handleMate(winningPlayer) {
+    document.getElementById("MateH1").innerHTML = winningPlayer + " Wins!";
+    document.querySelector(".Checkmate").style.display = "flex";
+}
+
+function resetBoard() {
+    let squares = document.querySelectorAll(".Square");
+
+    for (let i = 0; i < squares.length; i++) {
+        squares[i].classList.remove(squares[i].classList[3]);
+        squares[i].innerHTML = "";
+    }
+
+    document.querySelector(".Checkmate").style.display = "none";
+
+    board15 = new UpdatedBoard();
+    SetBoard();
+}
+
 function isLegalMove(start_sq, target_sq, element) {
     console.log(start_sq, target_sq);
     let legal;
@@ -197,7 +216,6 @@ function isLegalMove(start_sq, target_sq, element) {
     let target = getSquareIndexFromClassName(target_sq);
     if (board15.playerBoolean) {
         legal = board15.getWhiteMoves();
-        console.log("white");
     } else {
         legal = board15.getBlackMoves();
     }
@@ -230,6 +248,13 @@ function isLegalMove(start_sq, target_sq, element) {
             //Check En Passant, update UI accordingly
             if (legal[i].flags == EN_PASSANT_FLAG) {
                 checkEnPassants(start_sq, target_sq);
+            }
+
+            console.log(board15.playerBoolean);
+            if (!board15.playerBoolean && board15.getBlackMoves().length == 0) {
+                handleMate("White");
+            } else if (board15.getWhiteMoves().length == 0) {
+                handleMate("Black");
             }
 
             //Move is legal, return
