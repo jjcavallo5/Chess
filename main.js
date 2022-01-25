@@ -1,7 +1,3 @@
-//Vars
-
-//Set kings and queens
-
 //Set Pawns
 var lightPawns = document.querySelectorAll(".LPawn");
 var darkPawns = document.querySelectorAll(".DPawn");
@@ -199,8 +195,9 @@ function resetBoard() {
     let squares = document.querySelectorAll(".Square");
 
     for (let i = 0; i < squares.length; i++) {
-        squares[i].classList.remove(squares[i].classList[3]);
-        squares[i].classList.remove(squares[i].classList[3]);
+        while (squares[i].classList.length > 3) {
+            squares[i].classList.remove(squares[i].classList[3]);
+        }
         squares[i].innerHTML = "";
     }
 
@@ -255,7 +252,6 @@ function isLegalMove(start_sq, target_sq, element) {
                 checkEnPassants(start_sq, target_sq);
             }
 
-            console.log(board15.playerBoolean);
             if (!board15.playerBoolean && board15.getBlackMoves().length == 0) {
                 handleMate("White");
             } else if (board15.getWhiteMoves().length == 0) {
