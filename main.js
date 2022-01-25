@@ -200,9 +200,14 @@ function resetBoard() {
 
     for (let i = 0; i < squares.length; i++) {
         squares[i].classList.remove(squares[i].classList[3]);
+        squares[i].classList.remove(squares[i].classList[3]);
         squares[i].innerHTML = "";
     }
 
+    let container = document.querySelector(".PieceContainer");
+    while (container.firstChild) {
+        container.removeChild(container.firstChild);
+    }
     document.querySelector(".Checkmate").style.display = "none";
 
     board15 = new UpdatedBoard();
