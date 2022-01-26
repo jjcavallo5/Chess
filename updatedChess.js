@@ -297,9 +297,9 @@ class UpdatedBoard {
 
         //Pawns
         let _targets = (this.darkPieces & targetMask) | (this.lightEnPassantTarget & targetMask);
-        if (!_nullIfCheck && this.lightEnPassantTarget)
-            if (NWOne(this.lightKing) & this.darkPawns || NEOne(this.lightKing) & this.darkPawns)
-                _targets |= this.lightEnPassantTarget;
+        let _otherCheck =
+            NWOne(this.lightKing) & this.darkPawns || NEOne(this.lightKing) & this.darkPawns;
+        _targets |= this.lightEnPassantTarget * BigInt(!_nullIfCheck * (_otherCheck != 0));
         let _pawns = this.lightPawns & ~(allInBetween ^ diaInBetween);
         moveTargets[1] |= NEOne(_pawns) & _targets;
         _pawns = this.lightPawns & ~(allInBetween ^ antiInBetween);
@@ -322,20 +322,15 @@ class UpdatedBoard {
         moveTargets[7] |= NWOne(this.lightKing) & targetMask;
 
         //Castling
-        if (this.lightCastleRights[0] && this.lightKing & binarySquares[4]) {
-            if (!(anyBlackAttack & wKingCastleMask) && !(this.occupied & wKingCastleMask))
-                moveList.push(new Move(4, 6, CASTLE_SHORT_FLAG));
-        }
-        if (this.lightCastleRights[1] && this.lightKing & binarySquares[4]) {
-            if (
-                !(anyBlackAttack & wQueenCastleMask) &&
-                !(
-                    this.occupied &
-                    0b0111000000000000000000000000000000000000000000000000000000000000n
-                )
-            )
-                moveList.push(new Move(4, 2, CASTLE_LONG_FLAG));
-        }
+        let _KSCastleBool = this.lightCastleRights[0];
+        _KSCastleBool *= (this.lightKing & binarySquares[4]) != 0n;
+        _KSCastleBool *= !(anyBlackAttack & wKingCastleMask) && !(this.occupied & wKingCastleMask);
+        let _QSCastleBool = this.lightCastleRights[1];
+        let _QSCastleMask = 0b0111000000000000000000000000000000000000000000000000000000000000n;
+        _QSCastleBool *= (this.lightKing & binarySquares[4]) != 0n;
+        _QSCastleBool *= !(anyBlackAttack & wQueenCastleMask) && !(this.occupied & _QSCastleMask);
+        if (_KSCastleBool) moveList.push(new Move(4, 6, CASTLE_SHORT_FLAG));
+        if (_QSCastleBool) moveList.push(new Move(4, 2, CASTLE_LONG_FLAG));
 
         let mask = maskInit;
         let targetSquares;
@@ -348,7 +343,7 @@ class UpdatedBoard {
                 targetSquares = slidingNorthRay(mask, this.occupied) & moveTargets[0];
                 while (targetSquares) {
                     endSq = MSB1(targetSquares);
-                    if (endSq & this.darkPieces) flag = 0b0100;
+                    flag = 0b0100 * Boolean((endSq & this.darkPieces) != 0n);
 
                     //Promotion
                     if (mask & this.lightPawns && endSq & _rank8) {
@@ -393,7 +388,6 @@ class UpdatedBoard {
 
                     //Promotion
                     if (mask & this.lightPawns && endSq & _rank8) {
-                        console.log("Promo");
                         moveList.push(
                             new Move(
                                 getSquareIndex(mask),
@@ -428,7 +422,7 @@ class UpdatedBoard {
                 targetSquares = slidingEastRay(mask, this.occupied) & moveTargets[2];
                 while (targetSquares) {
                     endSq = MSB1(targetSquares);
-                    if (endSq & this.darkPieces) flag = 0b0100;
+                    flag = 0b0100 * Boolean((endSq & this.darkPieces) != 0n);
                     moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
                     targetSquares &= ~endSq;
                     flag = 0b0000;
@@ -438,7 +432,7 @@ class UpdatedBoard {
                 targetSquares = slidingSouthEastRay(mask, this.occupied) & moveTargets[3];
                 while (targetSquares) {
                     endSq = LSB1(targetSquares);
-                    if (endSq & this.darkPieces) flag = 0b0100;
+                    flag = 0b0100 * Boolean((endSq & this.darkPieces) != 0n);
                     moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
                     targetSquares &= ~endSq;
                     flag = 0b0000;
@@ -448,7 +442,7 @@ class UpdatedBoard {
                 targetSquares = slidingSouthRay(mask, this.occupied) & moveTargets[4];
                 while (targetSquares) {
                     endSq = LSB1(targetSquares);
-                    if (endSq & this.darkPieces) flag = 0b0100;
+                    flag = 0b0100 * Boolean((endSq & this.darkPieces) != 0n);
                     moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
                     targetSquares &= ~endSq;
                     flag = 0b0000;
@@ -458,7 +452,7 @@ class UpdatedBoard {
                 targetSquares = slidingSouthWestRay(mask, this.occupied) & moveTargets[5];
                 while (targetSquares) {
                     endSq = LSB1(targetSquares);
-                    if (endSq & this.darkPieces) flag = 0b0100;
+                    flag = 0b0100 * Boolean((endSq & this.darkPieces) != 0n);
                     moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
                     targetSquares &= ~endSq;
                     flag = 0b0000;
@@ -468,7 +462,7 @@ class UpdatedBoard {
                 targetSquares = slidingWestRay(mask, this.occupied) & moveTargets[6];
                 while (targetSquares) {
                     endSq = LSB1(targetSquares);
-                    if (endSq & this.darkPieces) flag = 0b0100;
+                    flag = 0b0100 * Boolean((endSq & this.darkPieces) != 0n);
                     moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
                     targetSquares &= ~endSq;
                     flag = 0b0000;
@@ -478,10 +472,13 @@ class UpdatedBoard {
                 targetSquares = slidingNorthWestRay(mask, this.occupied) & moveTargets[7];
                 while (targetSquares) {
                     endSq = MSB1(targetSquares);
-                    if (endSq & this.darkPieces) flag = 0b0100;
-                    else if (endSq & this.lightEnPassantTarget && SEOne(endSq) & this.lightPawns) {
-                        flag = 0b0101;
-                    }
+                    flag = 0b0100 * Boolean((endSq & this.darkPieces) != 0n);
+                    flag |=
+                        0b0001 *
+                        Boolean(
+                            (endSq & this.lightEnPassantTarget) != 0 &&
+                                (SEOne(endSq) & this.lightPawns) != 0
+                        );
 
                     //Promotion
                     if (mask & this.lightPawns && endSq & _rank8) {
@@ -519,7 +516,7 @@ class UpdatedBoard {
                     //NNE
                     targetSquares = NOne(NEOne(mask)) & moveTargets[8];
                     if (targetSquares) {
-                        if (targetSquares & this.darkPieces) flag = 0b0100;
+                        flag = 0b0100 * Boolean((targetSquares & this.darkPieces) != 0n);
                         moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
@@ -528,7 +525,7 @@ class UpdatedBoard {
                     //NNE
                     targetSquares = EOne(NEOne(mask)) & moveTargets[9];
                     if (targetSquares) {
-                        if (targetSquares & this.darkPieces) flag = 0b0100;
+                        flag = 0b0100 * Boolean((targetSquares & this.darkPieces) != 0n);
                         moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
@@ -537,7 +534,7 @@ class UpdatedBoard {
                     //NNE
                     targetSquares = EOne(SEOne(mask)) & moveTargets[10];
                     if (targetSquares) {
-                        if (targetSquares & this.darkPieces) flag = 0b0100;
+                        flag = 0b0100 * Boolean((targetSquares & this.darkPieces) != 0n);
                         moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
@@ -546,7 +543,7 @@ class UpdatedBoard {
                     //NNE
                     targetSquares = SOne(SEOne(mask)) & moveTargets[11];
                     if (targetSquares) {
-                        if (targetSquares & this.darkPieces) flag = 0b0100;
+                        flag = 0b0100 * Boolean((targetSquares & this.darkPieces) != 0n);
                         moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
@@ -555,7 +552,7 @@ class UpdatedBoard {
                     //NNE
                     targetSquares = SOne(SWOne(mask)) & moveTargets[12];
                     if (targetSquares) {
-                        if (targetSquares & this.darkPieces) flag = 0b0100;
+                        flag = 0b0100 * Boolean((targetSquares & this.darkPieces) != 0n);
                         moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
@@ -564,7 +561,7 @@ class UpdatedBoard {
                     //NNE
                     targetSquares = WOne(SWOne(mask)) & moveTargets[13];
                     if (targetSquares) {
-                        if (targetSquares & this.darkPieces) flag = 0b0100;
+                        flag = 0b0100 * Boolean((targetSquares & this.darkPieces) != 0n);
                         moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
@@ -573,7 +570,7 @@ class UpdatedBoard {
                     //NNE
                     targetSquares = WOne(NWOne(mask)) & moveTargets[14];
                     if (targetSquares) {
-                        if (targetSquares & this.darkPieces) flag = 0b0100;
+                        flag = 0b0100 * Boolean((targetSquares & this.darkPieces) != 0n);
                         moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
@@ -582,7 +579,7 @@ class UpdatedBoard {
                     //NNE
                     targetSquares = NOne(NWOne(mask)) & moveTargets[15];
                     if (targetSquares) {
-                        if (targetSquares & this.darkPieces) flag = 0b0100;
+                        flag = 0b0100 * Boolean((targetSquares & this.darkPieces) != 0n);
                         moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
@@ -728,9 +725,9 @@ class UpdatedBoard {
 
         //Pawns
         let _targets = (this.lightPieces & targetMask) | (this.darkEnPassantTarget & targetMask);
-        if (!_nullIfCheck && this.darkEnPassantTarget)
-            if (SWOne(this.darkKing) & this.lightPawns || SEOne(this.darkKing) & this.lightPawns)
-                _targets |= this.darkEnPassantTarget;
+        let _otherCheck =
+            SWOne(this.darkKing) & this.lightPawns || SEOne(this.darkKing) & this.lightPawns;
+        _targets |= this.darkEnPassantTarget * BigInt(!_nullIfCheck * (_otherCheck != 0));
         let _pawns = this.darkPawns & ~(allInBetween ^ antiInBetween);
         moveTargets[3] |= SEOne(_pawns) & _targets;
         _pawns = this.darkPawns & ~(allInBetween ^ diaInBetween);
@@ -753,20 +750,15 @@ class UpdatedBoard {
         moveTargets[7] |= NWOne(this.darkKing) & targetMask;
 
         //Castling
-        if (this.darkCastleRights[0] && this.darkKing & binarySquares[60]) {
-            if (!(anyWhiteAttack & bKingCastleMask) && !(this.occupied & bKingCastleMask))
-                moveList.push(new Move(60, 62, CASTLE_SHORT_FLAG));
-        }
-        if (this.darkCastleRights[1] && this.darkKing & binarySquares[60]) {
-            if (
-                !(anyWhiteAttack & bQueenCastleMask) &&
-                !(
-                    this.occupied &
-                    0b0000000000000000000000000000000000000000000000000000000001110000n
-                )
-            )
-                moveList.push(new Move(60, 58, CASTLE_LONG_FLAG));
-        }
+        let _KSCastleBool = this.darkCastleRights[0];
+        _KSCastleBool *= (this.darkKing & binarySquares[60]) != 0n;
+        _KSCastleBool *= !(anyWhiteAttack & bKingCastleMask) && !(this.occupied & bKingCastleMask);
+        let _QSCastleBool = this.darkCastleRights[1];
+        let _QSCastleMask = 0b0000000000000000000000000000000000000000000000000000000001110000n;
+        _QSCastleBool *= (this.darkKing & binarySquares[60]) != 0n;
+        _QSCastleBool *= !(anyWhiteAttack & bQueenCastleMask) && !(this.occupied & _QSCastleMask);
+        if (_KSCastleBool) moveList.push(new Move(60, 62, CASTLE_SHORT_FLAG));
+        if (_QSCastleBool) moveList.push(new Move(60, 58, CASTLE_LONG_FLAG));
 
         let mask = maskInit;
         let targetSquares;
@@ -779,7 +771,7 @@ class UpdatedBoard {
                 targetSquares = slidingNorthRay(mask, this.occupied) & moveTargets[0];
                 while (targetSquares) {
                     endSq = MSB1(targetSquares);
-                    if (endSq & this.lightPieces) flag = 0b0100;
+                    flag = 0b0100 * Boolean((endSq & this.lightPieces) != 0);
                     moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
                     targetSquares &= ~endSq;
                     flag = 0b0000;
@@ -789,7 +781,7 @@ class UpdatedBoard {
                 targetSquares = slidingNorthEastRay(mask, this.occupied) & moveTargets[1];
                 while (targetSquares) {
                     endSq = MSB1(targetSquares);
-                    if (endSq & this.lightPieces) flag = 0b0100;
+                    flag = 0b0100 * Boolean((endSq & this.lightPieces) != 0);
                     moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
                     targetSquares &= ~endSq;
                     flag = 0b0000;
@@ -799,7 +791,7 @@ class UpdatedBoard {
                 targetSquares = slidingEastRay(mask, this.occupied) & moveTargets[2];
                 while (targetSquares) {
                     endSq = MSB1(targetSquares);
-                    if (endSq & this.lightPieces) flag = 0b0100;
+                    flag = 0b0100 * Boolean((endSq & this.lightPieces) != 0);
                     moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
                     targetSquares &= ~endSq;
                     flag = 0b0000;
@@ -809,10 +801,13 @@ class UpdatedBoard {
                 targetSquares = slidingSouthEastRay(mask, this.occupied) & moveTargets[3];
                 while (targetSquares) {
                     endSq = LSB1(targetSquares);
-                    if (endSq & this.lightPieces) flag = 0b0100;
-                    else if (endSq & this.darkEnPassantTarget && NWOne(endSq) & this.darkPawns) {
-                        flag = 0b0101;
-                    }
+                    flag = 0b0100 * Boolean((endSq & this.lightPieces) != 0);
+                    flag |=
+                        0b0001 *
+                        Boolean(
+                            (endSq & this.darkEnPassantTarget) != 0 &&
+                                (NWOne(endSq) & this.darkPawns) != 0
+                        );
                     //Promotion
                     if (mask & this.darkPawns && endSq & _rank1) {
                         moveList.push(
@@ -849,7 +844,7 @@ class UpdatedBoard {
                 targetSquares = slidingSouthRay(mask, this.occupied) & moveTargets[4];
                 while (targetSquares) {
                     endSq = LSB1(targetSquares);
-                    if (endSq & this.lightPieces) flag = 0b0100;
+                    flag = 0b0100 * Boolean((endSq & this.lightPieces) != 0);
                     //Promotion
                     if (mask & this.darkPawns && endSq & _rank1) {
                         moveList.push(
@@ -886,10 +881,13 @@ class UpdatedBoard {
                 targetSquares = slidingSouthWestRay(mask, this.occupied) & moveTargets[5];
                 while (targetSquares) {
                     endSq = LSB1(targetSquares);
-                    if (endSq & this.lightPieces) flag = 0b0100;
-                    else if (endSq & this.darkEnPassantTarget && NEOne(endSq) & this.darkPawns) {
-                        flag = 0b0101;
-                    }
+                    flag = 0b0100 * Boolean((endSq & this.lightPieces) != 0);
+                    flag |=
+                        0b0001 *
+                        Boolean(
+                            (endSq & this.darkEnPassantTarget) != 0 &&
+                                (NEOne(endSq) & this.darkPawns) != 0
+                        );
                     //Promotion
                     if (mask & this.darkPawns && endSq & _rank1) {
                         moveList.push(
@@ -926,7 +924,7 @@ class UpdatedBoard {
                 targetSquares = slidingWestRay(mask, this.occupied) & moveTargets[6];
                 while (targetSquares) {
                     endSq = LSB1(targetSquares);
-                    if (endSq & this.lightPieces) flag = 0b0100;
+                    flag = 0b0100 * Boolean((endSq & this.lightPieces) != 0);
                     moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
                     targetSquares &= ~endSq;
                     flag = 0b0000;
@@ -936,7 +934,7 @@ class UpdatedBoard {
                 targetSquares = slidingNorthWestRay(mask, this.occupied) & moveTargets[7];
                 while (targetSquares) {
                     endSq = MSB1(targetSquares);
-                    if (endSq & this.lightPieces) flag = 0b0100;
+                    flag = 0b0100 * Boolean((endSq & this.lightPieces) != 0);
                     moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
                     targetSquares &= ~endSq;
                     flag = 0b0000;
@@ -946,7 +944,7 @@ class UpdatedBoard {
                     //NNE
                     targetSquares = NOne(NEOne(mask)) & moveTargets[8];
                     if (targetSquares) {
-                        if (targetSquares & this.lightPieces) flag = 0b0100;
+                        flag = 0b0100 * Boolean((targetSquares & this.lightPieces) != 0);
                         moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
@@ -955,7 +953,7 @@ class UpdatedBoard {
                     //NNE
                     targetSquares = EOne(NEOne(mask)) & moveTargets[9];
                     if (targetSquares) {
-                        if (targetSquares & this.lightPieces) flag = 0b0100;
+                        flag = 0b0100 * Boolean((targetSquares & this.lightPieces) != 0);
                         moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
@@ -964,7 +962,7 @@ class UpdatedBoard {
                     //NNE
                     targetSquares = EOne(SEOne(mask)) & moveTargets[10];
                     if (targetSquares) {
-                        if (targetSquares & this.lightPieces) flag = 0b0100;
+                        flag = 0b0100 * Boolean((targetSquares & this.lightPieces) != 0);
                         moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
@@ -973,7 +971,7 @@ class UpdatedBoard {
                     //NNE
                     targetSquares = SOne(SEOne(mask)) & moveTargets[11];
                     if (targetSquares) {
-                        if (targetSquares & this.lightPieces) flag = 0b0100;
+                        flag = 0b0100 * Boolean((targetSquares & this.lightPieces) != 0);
                         moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
@@ -982,7 +980,7 @@ class UpdatedBoard {
                     //NNE
                     targetSquares = SOne(SWOne(mask)) & moveTargets[12];
                     if (targetSquares) {
-                        if (targetSquares & this.lightPieces) flag = 0b0100;
+                        flag = 0b0100 * Boolean((targetSquares & this.lightPieces) != 0);
                         moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
@@ -991,7 +989,7 @@ class UpdatedBoard {
                     //NNE
                     targetSquares = WOne(SWOne(mask)) & moveTargets[13];
                     if (targetSquares) {
-                        if (targetSquares & this.lightPieces) flag = 0b0100;
+                        flag = 0b0100 * Boolean((targetSquares & this.lightPieces) != 0);
                         moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
@@ -1000,7 +998,7 @@ class UpdatedBoard {
                     //NNE
                     targetSquares = WOne(NWOne(mask)) & moveTargets[14];
                     if (targetSquares) {
-                        if (targetSquares & this.lightPieces) flag = 0b0100;
+                        flag = 0b0100 * Boolean((targetSquares & this.lightPieces) != 0);
                         moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
@@ -1009,7 +1007,7 @@ class UpdatedBoard {
                     //NNE
                     targetSquares = NOne(NWOne(mask)) & moveTargets[15];
                     if (targetSquares) {
-                        if (targetSquares & this.lightPieces) flag = 0b0100;
+                        flag = 0b0100 * Boolean((targetSquares & this.lightPieces) != 0);
                         moveList.push(
                             new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
                         );
@@ -1026,7 +1024,6 @@ class UpdatedBoard {
     makeMove(move) {
         let start = getBinFromSquare(move.from);
         let target = getBinFromSquare(move.target);
-        console.log(move.flags);
 
         this.lightCastleBroken = false;
         this.darkCastleBroken = false;
@@ -1332,7 +1329,6 @@ class UpdatedBoard {
                 this.lightRooks |= binarySquares[7];
                 this.lightCastleRights[0] = true;
             } else {
-                console.log("Put dark rook back");
                 this.darkRooks &= ~binarySquares[61];
                 this.darkRooks |= binarySquares[63];
                 this.darkCastleRights[0] = true;
@@ -1495,7 +1491,6 @@ class UpdatedBoard {
             count += this.perft(depth - 1);
             if (depth == PERFT_DEPTH) {
                 this.divideArr.push(count);
-                console.log(SQUARE_LOOKUP[moves[i].from], SQUARE_LOOKUP[moves[i].target]);
             }
             this.unmakeMove(moves[i]);
             //this.updateGUI();
