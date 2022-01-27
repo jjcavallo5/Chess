@@ -81,6 +81,10 @@ class UpdatedBoard {
         this.captureCount = 0;
         this.divideArr = [];
 
+        //Copied from tables to keep local scope
+        this.rayAttacksFromSquare = rayAttacksFromSquare;
+        this.binaryDict = binaryDict;
+
         // this.bitBoardFromArray(this.boardArray);
         this.bitboardFromFEN();
     }
@@ -178,7 +182,12 @@ class UpdatedBoard {
             ~(this.occupied & ~this.lightKing)
         );
         anyBlackAttack = _blackAttacks;
-        let _superAttacks = slidingEastRay(this.lightKing, this.occupied);
+        let _superAttacks = slidingEastRay(
+            this.lightKing,
+            this.occupied,
+            this.binaryDict,
+            this.rayAttacksFromSquare
+        );
         kingSuperAttacksOrtho = _superAttacks;
         horzInBetween = _blackAttacks & _superAttacks;
         //Black rooks and queens East
@@ -187,7 +196,12 @@ class UpdatedBoard {
             ~(this.occupied & ~this.lightKing)
         );
         anyBlackAttack |= _blackAttacks;
-        _superAttacks = slidingWestRay(this.lightKing, this.occupied);
+        _superAttacks = slidingWestRay(
+            this.lightKing,
+            this.occupied,
+            this.binaryDict,
+            this.rayAttacksFromSquare
+        );
         kingSuperAttacksOrtho |= _superAttacks;
         horzInBetween |= _blackAttacks & _superAttacks;
         //Black rooks and queens North
@@ -196,7 +210,12 @@ class UpdatedBoard {
             ~(this.occupied & ~this.lightKing)
         );
         anyBlackAttack |= _blackAttacks;
-        _superAttacks = slidingSouthRay(this.lightKing, this.occupied);
+        _superAttacks = slidingSouthRay(
+            this.lightKing,
+            this.occupied,
+            this.binaryDict,
+            this.rayAttacksFromSquare
+        );
         kingSuperAttacksOrtho |= _superAttacks;
         vertInBetween = _blackAttacks & _superAttacks;
         //Black rooks and queens South
@@ -205,7 +224,12 @@ class UpdatedBoard {
             ~(this.occupied & ~this.lightKing)
         );
         anyBlackAttack |= _blackAttacks;
-        _superAttacks = slidingNorthRay(this.lightKing, this.occupied);
+        _superAttacks = slidingNorthRay(
+            this.lightKing,
+            this.occupied,
+            this.binaryDict,
+            this.rayAttacksFromSquare
+        );
         kingSuperAttacksOrtho |= _superAttacks;
         vertInBetween |= _blackAttacks & _superAttacks;
 
@@ -215,7 +239,12 @@ class UpdatedBoard {
             ~(this.occupied & ~this.lightKing)
         );
         anyBlackAttack |= _blackAttacks;
-        _superAttacks = slidingSouthWestRay(this.lightKing, this.occupied);
+        _superAttacks = slidingSouthWestRay(
+            this.lightKing,
+            this.occupied,
+            this.binaryDict,
+            this.rayAttacksFromSquare
+        );
         kingSuperAttacksDia = _superAttacks;
         diaInBetween = _blackAttacks & _superAttacks;
         //Black bishops and queens SW
@@ -224,7 +253,12 @@ class UpdatedBoard {
             ~(this.occupied & ~this.lightKing)
         );
         anyBlackAttack |= _blackAttacks;
-        _superAttacks = slidingNorthEastRay(this.lightKing, this.occupied);
+        _superAttacks = slidingNorthEastRay(
+            this.lightKing,
+            this.occupied,
+            this.binaryDict,
+            this.rayAttacksFromSquare
+        );
         kingSuperAttacksDia |= _superAttacks;
         diaInBetween |= _blackAttacks & _superAttacks;
         //Black bishops and queens NW
@@ -233,7 +267,12 @@ class UpdatedBoard {
             ~(this.occupied & ~this.lightKing)
         );
         anyBlackAttack |= _blackAttacks;
-        _superAttacks = slidingSouthEastRay(this.lightKing, this.occupied);
+        _superAttacks = slidingSouthEastRay(
+            this.lightKing,
+            this.occupied,
+            this.binaryDict,
+            this.rayAttacksFromSquare
+        );
         kingSuperAttacksDia |= _superAttacks;
         antiInBetween = _blackAttacks & _superAttacks;
         //Black bishops and queens SE
@@ -242,7 +281,12 @@ class UpdatedBoard {
             ~(this.occupied & ~this.lightKing)
         );
         anyBlackAttack |= _blackAttacks;
-        _superAttacks = slidingNorthWestRay(this.lightKing, this.occupied);
+        _superAttacks = slidingNorthWestRay(
+            this.lightKing,
+            this.occupied,
+            this.binaryDict,
+            this.rayAttacksFromSquare
+        );
         kingSuperAttacksDia |= _superAttacks;
         antiInBetween |= _blackAttacks & _superAttacks;
 
@@ -250,7 +294,7 @@ class UpdatedBoard {
         anyBlackAttack |= knightAttacks(this.darkKnights);
         anyBlackAttack |= blackPawnEastAttacks(this.darkPawns);
         anyBlackAttack |= blackPawnWestAttacks(this.darkPawns);
-        anyBlackAttack |= kingAttacksFromSquare[getSquareIndex(this.darkKing)];
+        anyBlackAttack |= kingAttacksFromSquare[this.binaryDict[this.darkKing]];
 
         //Calc Check
         let allInBetween = horzInBetween | vertInBetween | diaInBetween | antiInBetween;
@@ -259,7 +303,7 @@ class UpdatedBoard {
             (kingSuperAttacksOrtho & (this.darkRooks | this.darkQueen)) |
             (kingSuperAttacksDia & (this.darkBishops | this.darkQueen)) |
             (knightAttacks(this.lightKing) & this.darkKnights) |
-            (lightPawnAttacksFromSquare[getSquareIndex(this.lightKing)] & this.darkPawns);
+            (lightPawnAttacksFromSquare[this.binaryDict[this.lightKing]] & this.darkPawns);
 
         let _nullIfCheck = ((anyBlackAttack & this.lightKing) - 1n) >> 63n;
         let _nullIfDoubleCheck = ((_checkFrom & (_checkFrom - 1n)) - 1n) >> 63n;
@@ -340,7 +384,13 @@ class UpdatedBoard {
         for (let i = 0; i < 64; i++) {
             if (this.lightPieces & mask) {
                 //NORTH
-                targetSquares = slidingNorthRay(mask, this.occupied) & moveTargets[0];
+                targetSquares =
+                    slidingNorthRay(
+                        mask,
+                        this.occupied,
+                        this.binaryDict,
+                        this.rayAttacksFromSquare
+                    ) & moveTargets[0];
                 while (targetSquares) {
                     endSq = MSB1(targetSquares);
                     flag = 0b0100 * Boolean((endSq & this.darkPieces) != 0n);
@@ -349,36 +399,48 @@ class UpdatedBoard {
                     if (mask & this.lightPawns && endSq & _rank8) {
                         moveList.push(
                             new Move(
-                                getSquareIndex(mask),
-                                getSquareIndex(endSq),
+                                this.binaryDict[mask],
+                                this.binaryDict[endSq],
                                 KNIGHT_PROMO | flag
                             )
                         );
                         moveList.push(
                             new Move(
-                                getSquareIndex(mask),
-                                getSquareIndex(endSq),
+                                this.binaryDict[mask],
+                                this.binaryDict[endSq],
                                 BISHOP_PROMO | flag
                             )
                         );
                         moveList.push(
-                            new Move(getSquareIndex(mask), getSquareIndex(endSq), ROOK_PROMO | flag)
+                            new Move(
+                                this.binaryDict[mask],
+                                this.binaryDict[endSq],
+                                ROOK_PROMO | flag
+                            )
                         );
                         moveList.push(
                             new Move(
-                                getSquareIndex(mask),
-                                getSquareIndex(endSq),
+                                this.binaryDict[mask],
+                                this.binaryDict[endSq],
                                 QUEEN_PROMO | flag
                             )
                         );
                     } else
-                        moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
+                        moveList.push(
+                            new Move(this.binaryDict[mask], this.binaryDict[endSq], flag)
+                        );
                     targetSquares &= ~endSq;
                     flag = 0b0000;
                 }
 
                 //NORTH EAST
-                targetSquares = slidingNorthEastRay(mask, this.occupied) & moveTargets[1];
+                targetSquares =
+                    slidingNorthEastRay(
+                        mask,
+                        this.occupied,
+                        this.binaryDict,
+                        this.rayAttacksFromSquare
+                    ) & moveTargets[1];
                 while (targetSquares) {
                     endSq = MSB1(targetSquares);
                     if (endSq & this.darkPieces) flag = 0b0100;
@@ -390,86 +452,128 @@ class UpdatedBoard {
                     if (mask & this.lightPawns && endSq & _rank8) {
                         moveList.push(
                             new Move(
-                                getSquareIndex(mask),
-                                getSquareIndex(endSq),
+                                this.binaryDict[mask],
+                                this.binaryDict[endSq],
                                 KNIGHT_PROMO | flag
                             )
                         );
                         moveList.push(
                             new Move(
-                                getSquareIndex(mask),
-                                getSquareIndex(endSq),
+                                this.binaryDict[mask],
+                                this.binaryDict[endSq],
                                 BISHOP_PROMO | flag
                             )
                         );
                         moveList.push(
-                            new Move(getSquareIndex(mask), getSquareIndex(endSq), ROOK_PROMO | flag)
+                            new Move(
+                                this.binaryDict[mask],
+                                this.binaryDict[endSq],
+                                ROOK_PROMO | flag
+                            )
                         );
                         moveList.push(
                             new Move(
-                                getSquareIndex(mask),
-                                getSquareIndex(endSq),
+                                this.binaryDict[mask],
+                                this.binaryDict[endSq],
                                 QUEEN_PROMO | flag
                             )
                         );
                     } else
-                        moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
+                        moveList.push(
+                            new Move(this.binaryDict[mask], this.binaryDict[endSq], flag)
+                        );
                     targetSquares &= ~endSq;
                     flag = 0b0000;
                 }
 
                 //EAST
-                targetSquares = slidingEastRay(mask, this.occupied) & moveTargets[2];
+                targetSquares =
+                    slidingEastRay(
+                        mask,
+                        this.occupied,
+                        this.binaryDict,
+                        this.rayAttacksFromSquare
+                    ) & moveTargets[2];
                 while (targetSquares) {
                     endSq = MSB1(targetSquares);
                     flag = 0b0100 * Boolean((endSq & this.darkPieces) != 0n);
-                    moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
+                    moveList.push(new Move(this.binaryDict[mask], this.binaryDict[endSq], flag));
                     targetSquares &= ~endSq;
                     flag = 0b0000;
                 }
 
                 //SOUTH EAST
-                targetSquares = slidingSouthEastRay(mask, this.occupied) & moveTargets[3];
+                targetSquares =
+                    slidingSouthEastRay(
+                        mask,
+                        this.occupied,
+                        this.binaryDict,
+                        this.rayAttacksFromSquare
+                    ) & moveTargets[3];
                 while (targetSquares) {
                     endSq = LSB1(targetSquares);
                     flag = 0b0100 * Boolean((endSq & this.darkPieces) != 0n);
-                    moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
+                    moveList.push(new Move(this.binaryDict[mask], this.binaryDict[endSq], flag));
                     targetSquares &= ~endSq;
                     flag = 0b0000;
                 }
 
                 //SOUTH
-                targetSquares = slidingSouthRay(mask, this.occupied) & moveTargets[4];
+                targetSquares =
+                    slidingSouthRay(
+                        mask,
+                        this.occupied,
+                        this.binaryDict,
+                        this.rayAttacksFromSquare
+                    ) & moveTargets[4];
                 while (targetSquares) {
                     endSq = LSB1(targetSquares);
                     flag = 0b0100 * Boolean((endSq & this.darkPieces) != 0n);
-                    moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
+                    moveList.push(new Move(this.binaryDict[mask], this.binaryDict[endSq], flag));
                     targetSquares &= ~endSq;
                     flag = 0b0000;
                 }
 
                 //SOUTH WEST
-                targetSquares = slidingSouthWestRay(mask, this.occupied) & moveTargets[5];
+                targetSquares =
+                    slidingSouthWestRay(
+                        mask,
+                        this.occupied,
+                        this.binaryDict,
+                        this.rayAttacksFromSquare
+                    ) & moveTargets[5];
                 while (targetSquares) {
                     endSq = LSB1(targetSquares);
                     flag = 0b0100 * Boolean((endSq & this.darkPieces) != 0n);
-                    moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
+                    moveList.push(new Move(this.binaryDict[mask], this.binaryDict[endSq], flag));
                     targetSquares &= ~endSq;
                     flag = 0b0000;
                 }
 
                 //WEST
-                targetSquares = slidingWestRay(mask, this.occupied) & moveTargets[6];
+                targetSquares =
+                    slidingWestRay(
+                        mask,
+                        this.occupied,
+                        this.binaryDict,
+                        this.rayAttacksFromSquare
+                    ) & moveTargets[6];
                 while (targetSquares) {
                     endSq = LSB1(targetSquares);
                     flag = 0b0100 * Boolean((endSq & this.darkPieces) != 0n);
-                    moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
+                    moveList.push(new Move(this.binaryDict[mask], this.binaryDict[endSq], flag));
                     targetSquares &= ~endSq;
                     flag = 0b0000;
                 }
 
                 //NORTH WEST
-                targetSquares = slidingNorthWestRay(mask, this.occupied) & moveTargets[7];
+                targetSquares =
+                    slidingNorthWestRay(
+                        mask,
+                        this.occupied,
+                        this.binaryDict,
+                        this.rayAttacksFromSquare
+                    ) & moveTargets[7];
                 while (targetSquares) {
                     endSq = MSB1(targetSquares);
                     flag = 0b0100 * Boolean((endSq & this.darkPieces) != 0n);
@@ -484,30 +588,36 @@ class UpdatedBoard {
                     if (mask & this.lightPawns && endSq & _rank8) {
                         moveList.push(
                             new Move(
-                                getSquareIndex(mask),
-                                getSquareIndex(endSq),
+                                this.binaryDict[mask],
+                                this.binaryDict[endSq],
                                 KNIGHT_PROMO | flag
                             )
                         );
                         moveList.push(
                             new Move(
-                                getSquareIndex(mask),
-                                getSquareIndex(endSq),
+                                this.binaryDict[mask],
+                                this.binaryDict[endSq],
                                 BISHOP_PROMO | flag
                             )
                         );
                         moveList.push(
-                            new Move(getSquareIndex(mask), getSquareIndex(endSq), ROOK_PROMO | flag)
+                            new Move(
+                                this.binaryDict[mask],
+                                this.binaryDict[endSq],
+                                ROOK_PROMO | flag
+                            )
                         );
                         moveList.push(
                             new Move(
-                                getSquareIndex(mask),
-                                getSquareIndex(endSq),
+                                this.binaryDict[mask],
+                                this.binaryDict[endSq],
                                 QUEEN_PROMO | flag
                             )
                         );
                     } else
-                        moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
+                        moveList.push(
+                            new Move(this.binaryDict[mask], this.binaryDict[endSq], flag)
+                        );
                     targetSquares &= ~endSq;
                     flag = 0b0000;
                 }
@@ -518,7 +628,7 @@ class UpdatedBoard {
                     if (targetSquares) {
                         flag = 0b0100 * Boolean((targetSquares & this.darkPieces) != 0n);
                         moveList.push(
-                            new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
+                            new Move(this.binaryDict[mask], this.binaryDict[targetSquares], flag)
                         );
                         flag = 0b0000;
                     }
@@ -527,7 +637,7 @@ class UpdatedBoard {
                     if (targetSquares) {
                         flag = 0b0100 * Boolean((targetSquares & this.darkPieces) != 0n);
                         moveList.push(
-                            new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
+                            new Move(this.binaryDict[mask], this.binaryDict[targetSquares], flag)
                         );
                         flag = 0b0000;
                     }
@@ -536,7 +646,7 @@ class UpdatedBoard {
                     if (targetSquares) {
                         flag = 0b0100 * Boolean((targetSquares & this.darkPieces) != 0n);
                         moveList.push(
-                            new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
+                            new Move(this.binaryDict[mask], this.binaryDict[targetSquares], flag)
                         );
                         flag = 0b0000;
                     }
@@ -545,7 +655,7 @@ class UpdatedBoard {
                     if (targetSquares) {
                         flag = 0b0100 * Boolean((targetSquares & this.darkPieces) != 0n);
                         moveList.push(
-                            new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
+                            new Move(this.binaryDict[mask], this.binaryDict[targetSquares], flag)
                         );
                         flag = 0b0000;
                     }
@@ -554,7 +664,7 @@ class UpdatedBoard {
                     if (targetSquares) {
                         flag = 0b0100 * Boolean((targetSquares & this.darkPieces) != 0n);
                         moveList.push(
-                            new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
+                            new Move(this.binaryDict[mask], this.binaryDict[targetSquares], flag)
                         );
                         flag = 0b0000;
                     }
@@ -563,7 +673,7 @@ class UpdatedBoard {
                     if (targetSquares) {
                         flag = 0b0100 * Boolean((targetSquares & this.darkPieces) != 0n);
                         moveList.push(
-                            new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
+                            new Move(this.binaryDict[mask], this.binaryDict[targetSquares], flag)
                         );
                         flag = 0b0000;
                     }
@@ -572,7 +682,7 @@ class UpdatedBoard {
                     if (targetSquares) {
                         flag = 0b0100 * Boolean((targetSquares & this.darkPieces) != 0n);
                         moveList.push(
-                            new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
+                            new Move(this.binaryDict[mask], this.binaryDict[targetSquares], flag)
                         );
                         flag = 0b0000;
                     }
@@ -581,7 +691,7 @@ class UpdatedBoard {
                     if (targetSquares) {
                         flag = 0b0100 * Boolean((targetSquares & this.darkPieces) != 0n);
                         moveList.push(
-                            new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
+                            new Move(this.binaryDict[mask], this.binaryDict[targetSquares], flag)
                         );
                         flag = 0b0000;
                     }
@@ -606,7 +716,12 @@ class UpdatedBoard {
             ~(this.occupied & ~this.darkKing)
         );
         anyWhiteAttack = _whiteAttacks;
-        let _superAttacks = slidingEastRay(this.darkKing, this.occupied);
+        let _superAttacks = slidingEastRay(
+            this.darkKing,
+            this.occupied,
+            this.binaryDict,
+            this.rayAttacksFromSquare
+        );
         kingSuperAttacksOrtho = _superAttacks;
         horzInBetween = _whiteAttacks & _superAttacks;
         //Black rooks and queens East
@@ -615,7 +730,12 @@ class UpdatedBoard {
             ~(this.occupied & ~this.darkKing)
         );
         anyWhiteAttack |= _whiteAttacks;
-        _superAttacks = slidingWestRay(this.darkKing, this.occupied);
+        _superAttacks = slidingWestRay(
+            this.darkKing,
+            this.occupied,
+            this.binaryDict,
+            this.rayAttacksFromSquare
+        );
         kingSuperAttacksOrtho |= _superAttacks;
         horzInBetween |= _whiteAttacks & _superAttacks;
         //Black rooks and queens North
@@ -624,7 +744,12 @@ class UpdatedBoard {
             ~(this.occupied & ~this.darkKing)
         );
         anyWhiteAttack |= _whiteAttacks;
-        _superAttacks = slidingSouthRay(this.darkKing, this.occupied);
+        _superAttacks = slidingSouthRay(
+            this.darkKing,
+            this.occupied,
+            this.binaryDict,
+            this.rayAttacksFromSquare
+        );
         kingSuperAttacksOrtho |= _superAttacks;
         vertInBetween = _whiteAttacks & _superAttacks;
         //Black rooks and queens South
@@ -633,7 +758,12 @@ class UpdatedBoard {
             ~(this.occupied & ~this.darkKing)
         );
         anyWhiteAttack |= _whiteAttacks;
-        _superAttacks = slidingNorthRay(this.darkKing, this.occupied);
+        _superAttacks = slidingNorthRay(
+            this.darkKing,
+            this.occupied,
+            this.binaryDict,
+            this.rayAttacksFromSquare
+        );
         kingSuperAttacksOrtho |= _superAttacks;
         vertInBetween |= _whiteAttacks & _superAttacks;
 
@@ -643,7 +773,12 @@ class UpdatedBoard {
             ~(this.occupied & ~this.darkKing)
         );
         anyWhiteAttack |= _whiteAttacks;
-        _superAttacks = slidingSouthWestRay(this.darkKing, this.occupied);
+        _superAttacks = slidingSouthWestRay(
+            this.darkKing,
+            this.occupied,
+            this.binaryDict,
+            this.rayAttacksFromSquare
+        );
         kingSuperAttacksDia = _superAttacks;
         diaInBetween = _whiteAttacks & _superAttacks;
         //Black bishops and queens SW
@@ -652,7 +787,12 @@ class UpdatedBoard {
             ~(this.occupied & ~this.darkKing)
         );
         anyWhiteAttack |= _whiteAttacks;
-        _superAttacks = slidingNorthEastRay(this.darkKing, this.occupied);
+        _superAttacks = slidingNorthEastRay(
+            this.darkKing,
+            this.occupied,
+            this.binaryDict,
+            this.rayAttacksFromSquare
+        );
         kingSuperAttacksDia |= _superAttacks;
         diaInBetween |= _whiteAttacks & _superAttacks;
         //Black bishops and queens NW
@@ -661,7 +801,12 @@ class UpdatedBoard {
             ~(this.occupied & ~this.darkKing)
         );
         anyWhiteAttack |= _whiteAttacks;
-        _superAttacks = slidingSouthEastRay(this.darkKing, this.occupied);
+        _superAttacks = slidingSouthEastRay(
+            this.darkKing,
+            this.occupied,
+            this.binaryDict,
+            this.rayAttacksFromSquare
+        );
         kingSuperAttacksDia |= _superAttacks;
         antiInBetween = _whiteAttacks & _superAttacks;
         //Black bishops and queens SE
@@ -670,7 +815,12 @@ class UpdatedBoard {
             ~(this.occupied & ~this.darkKing)
         );
         anyWhiteAttack |= _whiteAttacks;
-        _superAttacks = slidingNorthWestRay(this.darkKing, this.occupied);
+        _superAttacks = slidingNorthWestRay(
+            this.darkKing,
+            this.occupied,
+            this.binaryDict,
+            this.rayAttacksFromSquare
+        );
         kingSuperAttacksDia |= _superAttacks;
         antiInBetween |= _whiteAttacks & _superAttacks;
 
@@ -678,7 +828,7 @@ class UpdatedBoard {
         anyWhiteAttack |= knightAttacks(this.lightKnights);
         anyWhiteAttack |= whitePawnEastAttacks(this.lightPawns);
         anyWhiteAttack |= whitePawnWestAttacks(this.lightPawns);
-        anyWhiteAttack |= kingAttacksFromSquare[getSquareIndex(this.lightKing)];
+        anyWhiteAttack |= kingAttacksFromSquare[this.binaryDict[this.lightKing]];
 
         //Calc Check
         let allInBetween = horzInBetween | vertInBetween | diaInBetween | antiInBetween;
@@ -687,7 +837,7 @@ class UpdatedBoard {
             (kingSuperAttacksOrtho & (this.lightRooks | this.lightQueen)) |
             (kingSuperAttacksDia & (this.lightBishops | this.lightQueen)) |
             (knightAttacks(this.darkKing) & this.lightKnights) |
-            (darkPawnAttacksFromSquare[getSquareIndex(this.darkKing)] & this.lightPawns);
+            (darkPawnAttacksFromSquare[this.binaryDict[this.darkKing]] & this.lightPawns);
 
         let _nullIfCheck = ((anyWhiteAttack & this.darkKing) - 1n) >> 63n;
         let _nullIfDoubleCheck = ((_checkFrom & (_checkFrom - 1n)) - 1n) >> 63n;
@@ -768,37 +918,61 @@ class UpdatedBoard {
         for (let i = 0; i < 64; i++) {
             if (this.darkPieces & mask) {
                 //NORTH
-                targetSquares = slidingNorthRay(mask, this.occupied) & moveTargets[0];
+                targetSquares =
+                    slidingNorthRay(
+                        mask,
+                        this.occupied,
+                        this.binaryDict,
+                        this.rayAttacksFromSquare
+                    ) & moveTargets[0];
                 while (targetSquares) {
                     endSq = MSB1(targetSquares);
                     flag = 0b0100 * Boolean((endSq & this.lightPieces) != 0);
-                    moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
+                    moveList.push(new Move(this.binaryDict[mask], this.binaryDict[endSq], flag));
                     targetSquares &= ~endSq;
                     flag = 0b0000;
                 }
 
                 //NORTH EAST
-                targetSquares = slidingNorthEastRay(mask, this.occupied) & moveTargets[1];
+                targetSquares =
+                    slidingNorthEastRay(
+                        mask,
+                        this.occupied,
+                        this.binaryDict,
+                        this.rayAttacksFromSquare
+                    ) & moveTargets[1];
                 while (targetSquares) {
                     endSq = MSB1(targetSquares);
                     flag = 0b0100 * Boolean((endSq & this.lightPieces) != 0);
-                    moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
+                    moveList.push(new Move(this.binaryDict[mask], this.binaryDict[endSq], flag));
                     targetSquares &= ~endSq;
                     flag = 0b0000;
                 }
 
                 //EAST
-                targetSquares = slidingEastRay(mask, this.occupied) & moveTargets[2];
+                targetSquares =
+                    slidingEastRay(
+                        mask,
+                        this.occupied,
+                        this.binaryDict,
+                        this.rayAttacksFromSquare
+                    ) & moveTargets[2];
                 while (targetSquares) {
                     endSq = MSB1(targetSquares);
                     flag = 0b0100 * Boolean((endSq & this.lightPieces) != 0);
-                    moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
+                    moveList.push(new Move(this.binaryDict[mask], this.binaryDict[endSq], flag));
                     targetSquares &= ~endSq;
                     flag = 0b0000;
                 }
 
                 //SOUTH EAST
-                targetSquares = slidingSouthEastRay(mask, this.occupied) & moveTargets[3];
+                targetSquares =
+                    slidingSouthEastRay(
+                        mask,
+                        this.occupied,
+                        this.binaryDict,
+                        this.rayAttacksFromSquare
+                    ) & moveTargets[3];
                 while (targetSquares) {
                     endSq = LSB1(targetSquares);
                     flag = 0b0100 * Boolean((endSq & this.lightPieces) != 0);
@@ -812,36 +986,48 @@ class UpdatedBoard {
                     if (mask & this.darkPawns && endSq & _rank1) {
                         moveList.push(
                             new Move(
-                                getSquareIndex(mask),
-                                getSquareIndex(endSq),
+                                this.binaryDict[mask],
+                                this.binaryDict[endSq],
                                 KNIGHT_PROMO | flag
                             )
                         );
                         moveList.push(
                             new Move(
-                                getSquareIndex(mask),
-                                getSquareIndex(endSq),
+                                this.binaryDict[mask],
+                                this.binaryDict[endSq],
                                 BISHOP_PROMO | flag
                             )
                         );
                         moveList.push(
-                            new Move(getSquareIndex(mask), getSquareIndex(endSq), ROOK_PROMO | flag)
+                            new Move(
+                                this.binaryDict[mask],
+                                this.binaryDict[endSq],
+                                ROOK_PROMO | flag
+                            )
                         );
                         moveList.push(
                             new Move(
-                                getSquareIndex(mask),
-                                getSquareIndex(endSq),
+                                this.binaryDict[mask],
+                                this.binaryDict[endSq],
                                 QUEEN_PROMO | flag
                             )
                         );
                     } else
-                        moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
+                        moveList.push(
+                            new Move(this.binaryDict[mask], this.binaryDict[endSq], flag)
+                        );
                     targetSquares &= ~endSq;
                     flag = 0b0000;
                 }
 
                 //SOUTH
-                targetSquares = slidingSouthRay(mask, this.occupied) & moveTargets[4];
+                targetSquares =
+                    slidingSouthRay(
+                        mask,
+                        this.occupied,
+                        this.binaryDict,
+                        this.rayAttacksFromSquare
+                    ) & moveTargets[4];
                 while (targetSquares) {
                     endSq = LSB1(targetSquares);
                     flag = 0b0100 * Boolean((endSq & this.lightPieces) != 0);
@@ -849,36 +1035,48 @@ class UpdatedBoard {
                     if (mask & this.darkPawns && endSq & _rank1) {
                         moveList.push(
                             new Move(
-                                getSquareIndex(mask),
-                                getSquareIndex(endSq),
+                                this.binaryDict[mask],
+                                this.binaryDict[endSq],
                                 KNIGHT_PROMO | flag
                             )
                         );
                         moveList.push(
                             new Move(
-                                getSquareIndex(mask),
-                                getSquareIndex(endSq),
+                                this.binaryDict[mask],
+                                this.binaryDict[endSq],
                                 BISHOP_PROMO | flag
                             )
                         );
                         moveList.push(
-                            new Move(getSquareIndex(mask), getSquareIndex(endSq), ROOK_PROMO | flag)
+                            new Move(
+                                this.binaryDict[mask],
+                                this.binaryDict[endSq],
+                                ROOK_PROMO | flag
+                            )
                         );
                         moveList.push(
                             new Move(
-                                getSquareIndex(mask),
-                                getSquareIndex(endSq),
+                                this.binaryDict[mask],
+                                this.binaryDict[endSq],
                                 QUEEN_PROMO | flag
                             )
                         );
                     } else
-                        moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
+                        moveList.push(
+                            new Move(this.binaryDict[mask], this.binaryDict[endSq], flag)
+                        );
                     targetSquares &= ~endSq;
                     flag = 0b0000;
                 }
 
                 //SOUTH WEST
-                targetSquares = slidingSouthWestRay(mask, this.occupied) & moveTargets[5];
+                targetSquares =
+                    slidingSouthWestRay(
+                        mask,
+                        this.occupied,
+                        this.binaryDict,
+                        this.rayAttacksFromSquare
+                    ) & moveTargets[5];
                 while (targetSquares) {
                     endSq = LSB1(targetSquares);
                     flag = 0b0100 * Boolean((endSq & this.lightPieces) != 0);
@@ -892,50 +1090,68 @@ class UpdatedBoard {
                     if (mask & this.darkPawns && endSq & _rank1) {
                         moveList.push(
                             new Move(
-                                getSquareIndex(mask),
-                                getSquareIndex(endSq),
+                                this.binaryDict[mask],
+                                this.binaryDict[endSq],
                                 KNIGHT_PROMO | flag
                             )
                         );
                         moveList.push(
                             new Move(
-                                getSquareIndex(mask),
-                                getSquareIndex(endSq),
+                                this.binaryDict[mask],
+                                this.binaryDict[endSq],
                                 BISHOP_PROMO | flag
                             )
                         );
                         moveList.push(
-                            new Move(getSquareIndex(mask), getSquareIndex(endSq), ROOK_PROMO | flag)
+                            new Move(
+                                this.binaryDict[mask],
+                                this.binaryDict[endSq],
+                                ROOK_PROMO | flag
+                            )
                         );
                         moveList.push(
                             new Move(
-                                getSquareIndex(mask),
-                                getSquareIndex(endSq),
+                                this.binaryDict[mask],
+                                this.binaryDict[endSq],
                                 QUEEN_PROMO | flag
                             )
                         );
                     } else
-                        moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
+                        moveList.push(
+                            new Move(this.binaryDict[mask], this.binaryDict[endSq], flag)
+                        );
                     targetSquares &= ~endSq;
                     flag = 0b0000;
                 }
 
                 //WEST
-                targetSquares = slidingWestRay(mask, this.occupied) & moveTargets[6];
+                targetSquares =
+                    slidingWestRay(
+                        mask,
+                        this.occupied,
+                        this.binaryDict,
+                        this.rayAttacksFromSquare
+                    ) & moveTargets[6];
                 while (targetSquares) {
                     endSq = LSB1(targetSquares);
                     flag = 0b0100 * Boolean((endSq & this.lightPieces) != 0);
-                    moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
+                    moveList.push(new Move(this.binaryDict[mask], this.binaryDict[endSq], flag));
                     targetSquares &= ~endSq;
                     flag = 0b0000;
                 }
 
                 //NORTH WEST
-                targetSquares = slidingNorthWestRay(mask, this.occupied) & moveTargets[7];
+                targetSquares =
+                    slidingNorthWestRay(
+                        mask,
+                        this.occupied,
+                        this.binaryDict,
+                        this.rayAttacksFromSquare
+                    ) & moveTargets[7];
                 while (targetSquares) {
                     endSq = MSB1(targetSquares);
                     flag = 0b0100 * Boolean((endSq & this.lightPieces) != 0);
-                    moveList.push(new Move(getSquareIndex(mask), getSquareIndex(endSq), flag));
+                    moveList.push(new Move(this.binaryDict[mask], this.binaryDict[endSq], flag));
                     targetSquares &= ~endSq;
                     flag = 0b0000;
                 }
@@ -946,7 +1162,7 @@ class UpdatedBoard {
                     if (targetSquares) {
                         flag = 0b0100 * Boolean((targetSquares & this.lightPieces) != 0);
                         moveList.push(
-                            new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
+                            new Move(this.binaryDict[mask], this.binaryDict[targetSquares], flag)
                         );
                         flag = 0b0000;
                     }
@@ -955,7 +1171,7 @@ class UpdatedBoard {
                     if (targetSquares) {
                         flag = 0b0100 * Boolean((targetSquares & this.lightPieces) != 0);
                         moveList.push(
-                            new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
+                            new Move(this.binaryDict[mask], this.binaryDict[targetSquares], flag)
                         );
                         flag = 0b0000;
                     }
@@ -964,7 +1180,7 @@ class UpdatedBoard {
                     if (targetSquares) {
                         flag = 0b0100 * Boolean((targetSquares & this.lightPieces) != 0);
                         moveList.push(
-                            new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
+                            new Move(this.binaryDict[mask], this.binaryDict[targetSquares], flag)
                         );
                         flag = 0b0000;
                     }
@@ -973,7 +1189,7 @@ class UpdatedBoard {
                     if (targetSquares) {
                         flag = 0b0100 * Boolean((targetSquares & this.lightPieces) != 0);
                         moveList.push(
-                            new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
+                            new Move(this.binaryDict[mask], this.binaryDict[targetSquares], flag)
                         );
                         flag = 0b0000;
                     }
@@ -982,7 +1198,7 @@ class UpdatedBoard {
                     if (targetSquares) {
                         flag = 0b0100 * Boolean((targetSquares & this.lightPieces) != 0);
                         moveList.push(
-                            new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
+                            new Move(this.binaryDict[mask], this.binaryDict[targetSquares], flag)
                         );
                         flag = 0b0000;
                     }
@@ -991,7 +1207,7 @@ class UpdatedBoard {
                     if (targetSquares) {
                         flag = 0b0100 * Boolean((targetSquares & this.lightPieces) != 0);
                         moveList.push(
-                            new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
+                            new Move(this.binaryDict[mask], this.binaryDict[targetSquares], flag)
                         );
                         flag = 0b0000;
                     }
@@ -1000,7 +1216,7 @@ class UpdatedBoard {
                     if (targetSquares) {
                         flag = 0b0100 * Boolean((targetSquares & this.lightPieces) != 0);
                         moveList.push(
-                            new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
+                            new Move(this.binaryDict[mask], this.binaryDict[targetSquares], flag)
                         );
                         flag = 0b0000;
                     }
@@ -1009,7 +1225,7 @@ class UpdatedBoard {
                     if (targetSquares) {
                         flag = 0b0100 * Boolean((targetSquares & this.lightPieces) != 0);
                         moveList.push(
-                            new Move(getSquareIndex(mask), getSquareIndex(targetSquares), flag)
+                            new Move(this.binaryDict[mask], this.binaryDict[targetSquares], flag)
                         );
                         flag = 0b0000;
                     }
@@ -1210,11 +1426,31 @@ class UpdatedBoard {
                 if (WOne(target) & this.darkPawns) {
                     if (
                         !(
-                            (slidingEastRay(target, this.occupied) |
-                                slidingWestRay(target, this.occupied & ~WOne(target))) &
+                            (slidingEastRay(
+                                target,
+                                this.occupied,
+                                this.binaryDict,
+                                this.rayAttacksFromSquare
+                            ) |
+                                slidingWestRay(
+                                    target,
+                                    this.occupied & ~WOne(target),
+                                    this.binaryDict,
+                                    this.rayAttacksFromSquare
+                                )) &
                                 this.darkKing &&
-                            (slidingEastRay(target, this.occupied) |
-                                slidingWestRay(target, this.occupied & ~WOne(target))) &
+                            (slidingEastRay(
+                                target,
+                                this.occupied,
+                                this.binaryDict,
+                                this.rayAttacksFromSquare
+                            ) |
+                                slidingWestRay(
+                                    target,
+                                    this.occupied & ~WOne(target),
+                                    this.binaryDict,
+                                    this.rayAttacksFromSquare
+                                )) &
                                 (this.lightRooks | this.lightQueen)
                         )
                     ) {
@@ -1223,11 +1459,31 @@ class UpdatedBoard {
                 } else if (EOne(target) & this.darkPawns) {
                     if (
                         !(
-                            (slidingEastRay(target, this.occupied & ~EOne(target)) |
-                                slidingWestRay(target, this.occupied)) &
+                            (slidingEastRay(
+                                target,
+                                this.occupied & ~EOne(target),
+                                this.binaryDict,
+                                this.rayAttacksFromSquare
+                            ) |
+                                slidingWestRay(
+                                    target,
+                                    this.occupied,
+                                    this.binaryDict,
+                                    this.rayAttacksFromSquare
+                                )) &
                                 this.darkKing &&
-                            (slidingEastRay(target, this.occupied & ~EOne(target)) |
-                                slidingWestRay(target, this.occupied)) &
+                            (slidingEastRay(
+                                target,
+                                this.occupied & ~EOne(target),
+                                this.binaryDict,
+                                this.rayAttacksFromSquare
+                            ) |
+                                slidingWestRay(
+                                    target,
+                                    this.occupied,
+                                    this.binaryDict,
+                                    this.rayAttacksFromSquare
+                                )) &
                                 (this.lightRooks | this.lightQueen)
                         )
                     ) {
@@ -1304,11 +1560,31 @@ class UpdatedBoard {
                 if (WOne(target) & this.lightPawns) {
                     if (
                         !(
-                            (slidingEastRay(target, this.occupied) |
-                                slidingWestRay(target, this.occupied & ~WOne(target))) &
+                            (slidingEastRay(
+                                target,
+                                this.occupied,
+                                this.binaryDict,
+                                this.rayAttacksFromSquare
+                            ) |
+                                slidingWestRay(
+                                    target,
+                                    this.occupied & ~WOne(target),
+                                    this.binaryDict,
+                                    this.rayAttacksFromSquare
+                                )) &
                                 this.lightKing &&
-                            (slidingEastRay(target, this.occupied) |
-                                slidingWestRay(target, this.occupied & ~WOne(target))) &
+                            (slidingEastRay(
+                                target,
+                                this.occupied,
+                                this.binaryDict,
+                                this.rayAttacksFromSquare
+                            ) |
+                                slidingWestRay(
+                                    target,
+                                    this.occupied & ~WOne(target),
+                                    this.binaryDict,
+                                    this.rayAttacksFromSquare
+                                )) &
                                 (this.darkRooks | this.darkQueen)
                         )
                     ) {
@@ -1317,11 +1593,31 @@ class UpdatedBoard {
                 } else if (EOne(target) & this.lightPawns) {
                     if (
                         !(
-                            (slidingEastRay(target, this.occupied & ~EOne(target)) |
-                                slidingWestRay(target, this.occupied)) &
+                            (slidingEastRay(
+                                target,
+                                this.occupied & ~EOne(target),
+                                this.binaryDict,
+                                this.rayAttacksFromSquare
+                            ) |
+                                slidingWestRay(
+                                    target,
+                                    this.occupied,
+                                    this.binaryDict,
+                                    this.rayAttacksFromSquare
+                                )) &
                                 this.lightKing &&
-                            (slidingEastRay(target, this.occupied & ~EOne(target)) |
-                                slidingWestRay(target, this.occupied)) &
+                            (slidingEastRay(
+                                target,
+                                this.occupied & ~EOne(target),
+                                this.binaryDict,
+                                this.rayAttacksFromSquare
+                            ) |
+                                slidingWestRay(
+                                    target,
+                                    this.occupied,
+                                    this.binaryDict,
+                                    this.rayAttacksFromSquare
+                                )) &
                                 (this.darkRooks | this.darkQueen)
                         )
                     ) {

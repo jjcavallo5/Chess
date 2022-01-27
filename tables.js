@@ -16,6 +16,9 @@ var bishopAttacksFromSquare = [];
 var queenAttacksFromSquare = [];
 var kingAttacksFromSquare = [];
 var binarySquares = [];
+var binaryDict = {
+    0: 0,
+};
 
 const SQUARE_LOOKUP = [
     "a1",
@@ -86,6 +89,12 @@ const SQUARE_LOOKUP = [
 
 //Generate Tables on Launch
 function generateRays() {
+    let mask = maskInit;
+    for (let i = 0; i < 64; i++) {
+        binaryDict[mask] = i;
+        mask >>= 1n;
+    }
+
     //N
     let north = 0b0000000010000000100000001000000010000000100000001000000010000000n;
     for (let i = 0; i < 64; i++) {
@@ -94,7 +103,7 @@ function generateRays() {
     }
 
     //NE
-    let mask = maskInit;
+    mask = maskInit;
     let temp;
     let ray;
     for (let i = 0; i < 64; i++) {
@@ -211,6 +220,8 @@ function generateRays() {
     generateKingAttacks();
     generatePawnAttacks();
     generateSquares();
+
+    return rayAttacksFromSquare;
 }
 
 function generateRookAttacks() {
@@ -449,45 +460,45 @@ function getSquareIndex(bin) {
 function getBinFromSquare(sq) {
     return binarySquares[sq];
 }
-function slidingNorthRay(bin, occ) {
-    let sq = getSquareIndex(bin);
-    let intersect = rayAttacksFromSquare[sq][0] & occ;
-    return rayAttacksFromSquare[sq][0] ^ rayAttacksFromSquare[getSquareIndex(MSB1(intersect))][0];
+function slidingNorthRay(bin, occ, dict, rays) {
+    let sq = dict[bin];
+    let intersect = rays[sq][0] & occ;
+    return rays[sq][0] ^ rays[dict[MSB1(intersect)]][0];
 }
-function slidingNorthEastRay(bin, occ) {
-    let sq = getSquareIndex(bin);
-    let intersect = rayAttacksFromSquare[sq][1] & occ;
-    return rayAttacksFromSquare[sq][1] ^ rayAttacksFromSquare[getSquareIndex(MSB1(intersect))][1];
+function slidingNorthEastRay(bin, occ, dict, rays) {
+    let sq = dict[bin];
+    let intersect = rays[sq][1] & occ;
+    return rays[sq][1] ^ rays[dict[MSB1(intersect)]][1];
 }
-function slidingEastRay(bin, occ) {
-    let sq = getSquareIndex(bin);
-    let intersect = rayAttacksFromSquare[sq][2] & occ;
-    return rayAttacksFromSquare[sq][2] ^ rayAttacksFromSquare[getSquareIndex(MSB1(intersect))][2];
+function slidingEastRay(bin, occ, dict, rays) {
+    let sq = dict[bin];
+    let intersect = rays[sq][2] & occ;
+    return rays[sq][2] ^ rays[dict[MSB1(intersect)]][2];
 }
-function slidingNorthWestRay(bin, occ) {
-    let sq = getSquareIndex(bin);
-    let intersect = rayAttacksFromSquare[sq][7] & occ;
-    return rayAttacksFromSquare[sq][7] ^ rayAttacksFromSquare[getSquareIndex(MSB1(intersect))][7];
+function slidingNorthWestRay(bin, occ, dict, rays) {
+    let sq = dict[bin];
+    let intersect = rays[sq][7] & occ;
+    return rays[sq][7] ^ rays[dict[MSB1(intersect)]][7];
 }
-function slidingSouthEastRay(bin, occ) {
-    let sq = getSquareIndex(bin);
-    let intersect = rayAttacksFromSquare[sq][3] & occ;
-    return rayAttacksFromSquare[sq][3] ^ rayAttacksFromSquare[getSquareIndex(LSB1(intersect))][3];
+function slidingSouthEastRay(bin, occ, dict, rays) {
+    let sq = dict[bin];
+    let intersect = rays[sq][3] & occ;
+    return rays[sq][3] ^ rays[dict[LSB1(intersect)]][3];
 }
-function slidingSouthRay(bin, occ) {
-    let sq = getSquareIndex(bin);
-    let intersect = rayAttacksFromSquare[sq][4] & occ;
-    return rayAttacksFromSquare[sq][4] ^ rayAttacksFromSquare[getSquareIndex(LSB1(intersect))][4];
+function slidingSouthRay(bin, occ, dict, rays) {
+    let sq = dict[bin];
+    let intersect = rays[sq][4] & occ;
+    return rays[sq][4] ^ rays[dict[LSB1(intersect)]][4];
 }
-function slidingSouthWestRay(bin, occ) {
-    let sq = getSquareIndex(bin);
-    let intersect = rayAttacksFromSquare[sq][5] & occ;
-    return rayAttacksFromSquare[sq][5] ^ rayAttacksFromSquare[getSquareIndex(LSB1(intersect))][5];
+function slidingSouthWestRay(bin, occ, dict, rays) {
+    let sq = dict[bin];
+    let intersect = rays[sq][5] & occ;
+    return rays[sq][5] ^ rays[dict[LSB1(intersect)]][5];
 }
-function slidingWestRay(bin, occ) {
-    let sq = getSquareIndex(bin);
-    let intersect = rayAttacksFromSquare[sq][6] & occ;
-    return rayAttacksFromSquare[sq][6] ^ rayAttacksFromSquare[getSquareIndex(LSB1(intersect))][6];
+function slidingWestRay(bin, occ, dict, rays) {
+    let sq = dict[bin];
+    let intersect = rays[sq][6] & occ;
+    return rays[sq][6] ^ rays[dict[LSB1(intersect)]][6];
 }
 function northAttacks(bin, empty) {
     let flood = bin;
