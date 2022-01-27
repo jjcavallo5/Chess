@@ -6,7 +6,7 @@ const KNIGHT_PROMO = 0b1000;
 const BISHOP_PROMO = 0b1001;
 const ROOK_PROMO = 0b1010;
 const QUEEN_PROMO = 0b1011;
-const PERFT_DEPTH = 3;
+const PERFT_DEPTH = 5;
 
 class Move {
     constructor(from, to, flags) {
@@ -81,7 +81,7 @@ class UpdatedBoard {
         this.captureCount = 0;
         this.divideArr = [];
 
-        //this.bitBoardFromArray(this.boardArray);
+        // this.bitBoardFromArray(this.boardArray);
         this.bitboardFromFEN();
     }
 
@@ -1090,52 +1090,113 @@ class UpdatedBoard {
             }
         }
 
-        //CASTLING
-        if (move.getButterflyIndex() == CASTLE_SHORT_FLAG) {
-            if (start & this.lightKing) {
-                this.lightRooks &= ~binarySquares[7];
-                this.lightRooks |= binarySquares[5];
-            } else {
-                this.darkRooks &= ~binarySquares[63];
-                this.darkRooks |= binarySquares[61];
-            }
-        }
-        if (move.getButterflyIndex() == CASTLE_LONG_FLAG) {
-            if (start & this.lightKing) {
-                this.lightRooks &= ~binarySquares[0];
-                this.lightRooks |= binarySquares[3];
-            } else {
-                this.darkRooks &= ~binarySquares[56];
-                this.darkRooks |= binarySquares[59];
-            }
-        }
+        //CASTLING - branchless
+        let _whiteCastleShortBool = move.getButterflyIndex() == CASTLE_SHORT_FLAG;
+        _whiteCastleShortBool *= Boolean((start & this.lightKing) != 0);
+        this.lightRooks &= ~(binarySquares[7] * BigInt(_whiteCastleShortBool));
+        this.lightRooks |= binarySquares[5] * BigInt(_whiteCastleShortBool);
+        let _blackCastleShortBool = move.getButterflyIndex() == CASTLE_SHORT_FLAG;
+        _blackCastleShortBool *= Boolean((start & this.darkKing) != 0);
+        this.darkRooks &= ~(binarySquares[63] * BigInt(_blackCastleShortBool));
+        this.darkRooks |= binarySquares[61] * BigInt(_blackCastleShortBool);
 
-        //Promotions
-        if (move.getButterflyIndex() & 0b1000) {
-            if (start & this.lightPawns) {
-                this.lightPawns &= ~target;
-                this.lightPawns &= ~start;
-                if (move.getButterflyIndex() == 0b1000) this.lightKnights |= target;
-                else if (move.getButterflyIndex() == 0b1001) this.lightBishops |= target;
-                else if (move.getButterflyIndex() == 0b1010) this.lightRooks |= target;
-                else if (move.getButterflyIndex() == 0b1011) this.lightQueen |= target;
-                else if (move.getButterflyIndex() == 0b1100) this.lightKnights |= target;
-                else if (move.getButterflyIndex() == 0b1101) this.lightBishops |= target;
-                else if (move.getButterflyIndex() == 0b1110) this.lightRooks |= target;
-                else if (move.getButterflyIndex() == 0b1111) this.lightQueen |= target;
-            } else {
-                this.darkPawns &= ~target;
-                this.darkPawns &= ~start;
-                if (move.getButterflyIndex() == 0b1000) this.darkKnights |= target;
-                else if (move.getButterflyIndex() == 0b1001) this.darkBishops |= target;
-                else if (move.getButterflyIndex() == 0b1010) this.darkRooks |= target;
-                else if (move.getButterflyIndex() == 0b1011) this.darkQueen |= target;
-                else if (move.getButterflyIndex() == 0b1100) this.darkKnights |= target;
-                else if (move.getButterflyIndex() == 0b1101) this.darkBishops |= target;
-                else if (move.getButterflyIndex() == 0b1110) this.darkRooks |= target;
-                else if (move.getButterflyIndex() == 0b1111) this.darkQueen |= target;
-            }
-        }
+        let _whiteCastleLongBool = move.getButterflyIndex() == CASTLE_LONG_FLAG;
+        _whiteCastleLongBool *= Boolean((start & this.lightKing) != 0n);
+        this.lightRooks &= ~(binarySquares[0] * BigInt(_whiteCastleLongBool));
+        this.lightRooks |= binarySquares[3] * BigInt(_whiteCastleLongBool);
+        let _blackCastleLongBool = move.getButterflyIndex() == CASTLE_LONG_FLAG;
+        _blackCastleLongBool *= Boolean((start & this.darkKing) != 0n);
+        this.darkRooks &= ~(binarySquares[56] * BigInt(_blackCastleLongBool));
+        this.darkRooks |= binarySquares[59] * BigInt(_blackCastleLongBool);
+
+        // ! OLD BRANCHING VERSION
+        // if (move.getButterflyIndex() == CASTLE_SHORT_FLAG) {
+        //     if (start & this.lightKing) {
+        //         this.lightRooks &= ~binarySquares[7];
+        //         this.lightRooks |= binarySquares[5];
+        //     } else {
+        //         this.darkRooks &= ~binarySquares[63];
+        //         this.darkRooks |= binarySquares[61];
+        //     }
+        // }
+        // if (move.getButterflyIndex() == CASTLE_LONG_FLAG) {
+        //     if (start & this.lightKing) {
+        //         this.lightRooks &= ~binarySquares[0];
+        //         this.lightRooks |= binarySquares[3];
+        //     } else {
+        //         this.darkRooks &= ~binarySquares[56];
+        //         this.darkRooks |= binarySquares[59];
+        //     }
+        // }
+
+        //Promotions - branchless
+        let _promoBool = Boolean(move.getButterflyIndex() & 0b1000);
+        let _whitePromo = _promoBool * Boolean(start & this.lightPawns);
+        let _whiteKnightPromo =
+            _whitePromo *
+            Boolean(move.getButterflyIndex() == 0b1000 || move.getButterflyIndex() == 0b1100);
+        let _whiteBishopPromo =
+            _whitePromo *
+            Boolean(move.getButterflyIndex() == 0b1001 || move.getButterflyIndex() == 0b1101);
+        let _whiteRookPromo =
+            _whitePromo *
+            Boolean(move.getButterflyIndex() == 0b1010 || move.getButterflyIndex() == 0b1110);
+        let _whiteQueenPromo =
+            _whitePromo *
+            Boolean(move.getButterflyIndex() == 0b1011 || move.getButterflyIndex() == 0b1111);
+        this.lightPawns &= ~(target * BigInt(_whitePromo));
+        this.lightPawns &= ~(start * BigInt(_whitePromo));
+        this.lightKnights |= target * BigInt(_whiteKnightPromo);
+        this.lightBishops |= target * BigInt(_whiteBishopPromo);
+        this.lightRooks |= target * BigInt(_whiteRookPromo);
+        this.lightQueen |= target * BigInt(_whiteQueenPromo);
+
+        let _blackPromo = _promoBool * Boolean(start & this.darkPawns);
+        let _blackKnightPromo =
+            _blackPromo *
+            Boolean(move.getButterflyIndex() == 0b1000 || move.getButterflyIndex() == 0b1100);
+        let _blackBishopPromo =
+            _blackPromo *
+            Boolean(move.getButterflyIndex() == 0b1001 || move.getButterflyIndex() == 0b1101);
+        let _blackRookPromo =
+            _blackPromo *
+            Boolean(move.getButterflyIndex() == 0b1010 || move.getButterflyIndex() == 0b1110);
+        let _blackQueenPromo =
+            _blackPromo *
+            Boolean(move.getButterflyIndex() == 0b1011 || move.getButterflyIndex() == 0b1111);
+        this.darkPawns &= ~(target * BigInt(_blackPromo));
+        this.darkPawns &= ~(start * BigInt(_blackPromo));
+        this.darkKnights |= target * BigInt(_blackKnightPromo);
+        this.darkBishops |= target * BigInt(_blackBishopPromo);
+        this.darkRooks |= target * BigInt(_blackRookPromo);
+        this.darkQueen |= target * BigInt(_blackQueenPromo);
+
+        // ! OLD BRANCHING VERSION
+        // if (move.getButterflyIndex() & 0b1000) {
+        //     if (start & this.lightPawns) {
+        //         this.lightPawns &= ~target;
+        //         this.lightPawns &= ~start;
+        //         if (move.getButterflyIndex() == 0b1000) this.lightKnights |= target;
+        //         else if (move.getButterflyIndex() == 0b1001) this.lightBishops |= target;
+        //         else if (move.getButterflyIndex() == 0b1010) this.lightRooks |= target;
+        //         else if (move.getButterflyIndex() == 0b1011) this.lightQueen |= target;
+        //         else if (move.getButterflyIndex() == 0b1100) this.lightKnights |= target;
+        //         else if (move.getButterflyIndex() == 0b1101) this.lightBishops |= target;
+        //         else if (move.getButterflyIndex() == 0b1110) this.lightRooks |= target;
+        //         else if (move.getButterflyIndex() == 0b1111) this.lightQueen |= target;
+        //     } else {
+        //         this.darkPawns &= ~target;
+        //         this.darkPawns &= ~start;
+        //         if (move.getButterflyIndex() == 0b1000) this.darkKnights |= target;
+        //         else if (move.getButterflyIndex() == 0b1001) this.darkBishops |= target;
+        //         else if (move.getButterflyIndex() == 0b1010) this.darkRooks |= target;
+        //         else if (move.getButterflyIndex() == 0b1011) this.darkQueen |= target;
+        //         else if (move.getButterflyIndex() == 0b1100) this.darkKnights |= target;
+        //         else if (move.getButterflyIndex() == 0b1101) this.darkBishops |= target;
+        //         else if (move.getButterflyIndex() == 0b1110) this.darkRooks |= target;
+        //         else if (move.getButterflyIndex() == 0b1111) this.darkQueen |= target;
+        //     }
+        // }
 
         //Reset EP Targets
         this.lightEnPassantTarget = 0n;
@@ -1192,30 +1253,47 @@ class UpdatedBoard {
         }
 
         //Check Bishop Moves
-        if (start & this.lightBishops) {
-            this.lightBishops &= ~start;
-            this.lightBishops |= target;
-        }
+        let _lightBishopMove = Boolean(start & this.lightBishops);
+        let _darkBishopMove = Boolean(start & this.darkBishops);
+        this.lightBishops &= ~(start * BigInt(_lightBishopMove));
+        this.lightBishops |= target * BigInt(_lightBishopMove);
+        this.darkBishops &= ~(start * BigInt(_darkBishopMove));
+        this.darkBishops |= target * BigInt(_darkBishopMove);
 
         //Check Queen Moves
-        if (start & this.lightQueen) {
-            this.lightQueen &= ~start;
-            this.lightQueen |= target;
-        }
+        let _lightQueenMove = Boolean(start & this.lightQueen);
+        let _darkQueenMove = Boolean(start & this.darkQueen);
+        this.lightQueen &= ~(start * BigInt(_lightQueenMove));
+        this.darkQueen &= ~(start * BigInt(_darkQueenMove));
+        this.lightQueen |= target * BigInt(_lightQueenMove);
+        this.darkQueen |= target * BigInt(_darkQueenMove);
 
         //Check Knight Moves
-        if (start & this.lightKnights) {
-            this.lightKnights &= ~start;
-            this.lightKnights |= target;
-        }
+        let _lightKnightMove = Boolean(start & this.lightKnights);
+        let _darkKnightMove = Boolean(start & this.darkKnights);
+        this.lightKnights &= ~(start * BigInt(_lightKnightMove));
+        this.darkKnights &= ~(start * BigInt(_darkKnightMove));
+        this.lightKnights |= target * BigInt(_lightKnightMove);
+        this.darkKnights |= target * BigInt(_darkKnightMove);
 
         //Check King Moves
+        let _lightKingMove = Boolean(start & this.lightKing);
+        let _darkKingMove = Boolean(start & this.darkKing);
+        this.lightKing &= ~(start * BigInt(_lightKingMove));
+        this.darkKing &= ~(start * BigInt(_darkKingMove));
+        this.lightKing |= target * BigInt(_lightKingMove);
+        this.darkKing |= target * BigInt(_darkKingMove);
+
         if (start & this.lightKing) {
-            this.lightKing &= ~start;
-            this.lightKing |= target;
             this.lightOldRights = this.lightCastleRights;
             this.lightCastleRights = [false, false];
             this.lightCastleBroken = true;
+        }
+
+        if (start & this.darkKing) {
+            this.darkOldRights = this.darkCastleRights;
+            this.darkCastleRights = [false, false];
+            this.darkCastleBroken = true;
         }
 
         //Check Pawn Moves
@@ -1269,31 +1347,29 @@ class UpdatedBoard {
         }
 
         //Check Bishop Moves
-        if (start & this.darkBishops) {
-            this.darkBishops &= ~start;
-            this.darkBishops |= target;
-        }
+        // if (start & this.darkBishops) {
+        //     this.darkBishops &= ~start;
+        //     this.darkBishops |= target;
+        // }
 
         //Check Queen Moves
-        if (start & this.darkQueen) {
-            this.darkQueen &= ~start;
-            this.darkQueen |= target;
-        }
+        // if (start & this.darkQueen) {
+        //     this.darkQueen &= ~start;
+        //     this.darkQueen |= target;
+        // }
 
         //Check Knight Moves
-        if (start & this.darkKnights) {
-            this.darkKnights &= ~start;
-            this.darkKnights |= target;
-        }
+        // if (start & this.darkKnights) {
+        //     this.darkKnights &= ~start;
+        //     this.darkKnights |= target;
+        // }
 
         //Check King Moves
-        if (start & this.darkKing) {
-            this.darkKing &= ~start;
-            this.darkKing |= target;
-            this.darkOldRights = this.darkCastleRights;
-            this.darkCastleRights = [false, false];
-            this.darkCastleBroken = true;
-        }
+        // if (start & this.darkKing) {
+        //     this.darkOldRights = this.darkCastleRights;
+        //     this.darkCastleRights = [false, false];
+        //     this.darkCastleBroken = true;
+        // }
 
         //Re-Evaluate Pieces
         this.lightPieces =

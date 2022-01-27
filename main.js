@@ -16,7 +16,23 @@ var lightQueen = document.querySelector(".LQueen");
 var darkQueen = document.querySelector(".DQueen");
 
 var board15 = new UpdatedBoard();
+// console.time("Perft");
+// console.log(board15.perft(PERFT_DEPTH));
+// console.timeEnd("Perft");
 SetBoard();
+
+console.time("Get Moves");
+for (let i = 0; i < 10000; i++) {
+    board15.getWhiteMoves();
+}
+console.timeEnd("Get Moves");
+
+let move = new Move(8, 16, 0b0000);
+console.time("Make Move");
+for (let i = 0; i < 10000; i++) {
+    board15.makeMove(move);
+}
+console.timeEnd("Make Move");
 
 function SetBoard() {
     let node;
