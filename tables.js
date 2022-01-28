@@ -1,91 +1,15 @@
 const noHMask = 0b1111111011111110111111101111111011111110111111101111111011111110n;
 const noAMask = 0b0111111101111111011111110111111101111111011111110111111101111111n;
 const maskInit = 0b1000000000000000000000000000000000000000000000000000000000000000n;
-const boardMask = 0b1111111111111111111111111111111111111111111111111111111111111111n;
-const wKingCastleMask = 0b0000011000000000000000000000000000000000000000000000000000000000n;
-const wQueenCastleMask = 0b0011000000000000000000000000000000000000000000000000000000000000n;
-const bKingCastleMask = 0b0000000000000000000000000000000000000000000000000000000000000110n;
-const bQueenCastleMask = 0b0000000000000000000000000000000000000000000000000000000000110000n;
 
 var rayAttacksFromSquare = [];
 var lightPawnAttacksFromSquare = [];
 var darkPawnAttacksFromSquare = [];
-var rookAttacksFromSquare = [];
-var knightAttacksFromSquare = [];
-var bishopAttacksFromSquare = [];
-var queenAttacksFromSquare = [];
 var kingAttacksFromSquare = [];
 var binarySquares = [];
 var binaryDict = {
     0: 0,
 };
-
-const SQUARE_LOOKUP = [
-    "a1",
-    "b1",
-    "c1",
-    "d1",
-    "e1",
-    "f1",
-    "g1",
-    "h1",
-    "a2",
-    "b2",
-    "c2",
-    "d2",
-    "e2",
-    "f2",
-    "g2",
-    "h2",
-    "a3",
-    "b3",
-    "c3",
-    "d3",
-    "e3",
-    "f3",
-    "g3",
-    "h3",
-    "a4",
-    "b4",
-    "c4",
-    "d4",
-    "e4",
-    "f4",
-    "g4",
-    "h4",
-    "a5",
-    "b5",
-    "c5",
-    "d5",
-    "e5",
-    "f5",
-    "g5",
-    "h5",
-    "a6",
-    "b6",
-    "c6",
-    "d6",
-    "e6",
-    "f6",
-    "g6",
-    "h6",
-    "a7",
-    "b7",
-    "c7",
-    "d7",
-    "e7",
-    "f7",
-    "g7",
-    "h7",
-    "a8",
-    "b8",
-    "c8",
-    "d8",
-    "e8",
-    "f8",
-    "g8",
-    "h8",
-];
 
 //Generate Tables on Launch
 function generateRays() {
@@ -213,117 +137,15 @@ function generateRays() {
         rayAttacksFromSquare[i][7] = ray;
     }
 
-    generateRookAttacks();
-    generateBishopAttacks();
-    generateQueenAttacks();
-    generateKnightAttacks();
+    // generateRookAttacks();
+    // generateBishopAttacks();
+    // generateQueenAttacks();
+    // generateKnightAttacks();
     generateKingAttacks();
     generatePawnAttacks();
     generateSquares();
 
     return rayAttacksFromSquare;
-}
-
-function generateRookAttacks() {
-    for (let i = 0; i < 64; i++) {
-        rookAttacksFromSquare[i] =
-            rayAttacksFromSquare[i][0] |
-            rayAttacksFromSquare[i][2] |
-            rayAttacksFromSquare[i][4] |
-            rayAttacksFromSquare[i][6];
-    }
-}
-
-function generateBishopAttacks() {
-    for (let i = 0; i < 64; i++) {
-        bishopAttacksFromSquare[i] =
-            rayAttacksFromSquare[i][1] |
-            rayAttacksFromSquare[i][3] |
-            rayAttacksFromSquare[i][5] |
-            rayAttacksFromSquare[i][7];
-    }
-}
-
-function generateQueenAttacks() {
-    for (let i = 0; i < 64; i++) {
-        queenAttacksFromSquare[i] =
-            rayAttacksFromSquare[i][0] |
-            rayAttacksFromSquare[i][1] |
-            rayAttacksFromSquare[i][2] |
-            rayAttacksFromSquare[i][3] |
-            rayAttacksFromSquare[i][4] |
-            rayAttacksFromSquare[i][5] |
-            rayAttacksFromSquare[i][6] |
-            rayAttacksFromSquare[i][7];
-    }
-}
-
-function generateKnightAttacks() {
-    let mask = maskInit;
-    let temp;
-    let knightMoves;
-    for (let i = 0; i < 64; i++) {
-        temp = mask;
-        knightMoves = 0n;
-
-        //NNE
-        temp &= noHMask;
-        temp >>= 17n;
-        knightMoves |= temp;
-
-        //ENE
-        temp = mask;
-        temp &= noHMask;
-        temp >>= 1n;
-        temp &= noHMask;
-        temp >>= 9n;
-        knightMoves |= temp;
-
-        //ESE
-        temp = mask;
-        temp &= noHMask;
-        temp >>= 1n;
-        temp &= noHMask;
-        temp <<= 7n;
-        knightMoves |= temp;
-
-        //SSE
-        temp = mask;
-        temp &= noHMask;
-        temp <<= 15n;
-        knightMoves |= temp;
-
-        //SSW
-        temp = mask;
-        temp &= noAMask;
-        temp <<= 17n;
-        knightMoves |= temp;
-
-        //WSW
-        temp = mask;
-        temp &= noAMask;
-        temp <<= 1n;
-        temp &= noAMask;
-        temp <<= 9n;
-        knightMoves |= temp;
-
-        //WNW
-        temp = mask;
-        temp &= noAMask;
-        temp <<= 1n;
-        temp &= noAMask;
-        temp >>= 7n;
-        knightMoves |= temp;
-
-        //NNW
-        temp = mask;
-        temp &= noAMask;
-        temp >>= 15n;
-        knightMoves |= temp;
-
-        knightAttacksFromSquare[i] = knightMoves;
-        mask >>= 1n;
-    }
 }
 
 function generateKingAttacks() {
@@ -448,14 +270,6 @@ function print(bin) {
     }
 
     console.log(final);
-}
-function getSquareIndex(bin) {
-    let mask = maskInit;
-    for (let i = 0; i < 64; i++) {
-        if (mask & bin) return i;
-        mask >>= 1n;
-    }
-    return 0;
 }
 function getBinFromSquare(sq) {
     return binarySquares[sq];

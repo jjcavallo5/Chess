@@ -133,6 +133,8 @@ function getSquareIndexFromClassName(sq_string) {
 }
 
 function checkPromotion(legalMoves, i, target_sq, element) {
+    const CAPTURE_FLAG = 0b0100;
+
     let color;
     color = target_sq[1] == 8 ? "white" : "black";
     let promo = document.getElementsByClassName(color + " PromoSelector");

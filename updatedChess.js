@@ -1,11 +1,3 @@
-const CAPTURE_FLAG = 0b0100;
-const CASTLE_SHORT_FLAG = 0b0010;
-const CASTLE_LONG_FLAG = 0b0011;
-const EN_PASSANT_FLAG = 0b0101;
-const KNIGHT_PROMO = 0b1000;
-const BISHOP_PROMO = 0b1001;
-const ROOK_PROMO = 0b1010;
-const QUEEN_PROMO = 0b1011;
 const PERFT_DEPTH = 5;
 
 class Move {
@@ -15,9 +7,6 @@ class Move {
         this.flags = flags;
 
         this.move = (from << 10) | (to << 4) | flags;
-    }
-    isCapture() {
-        return this.flags == CAPTURE_FLAG;
     }
     getButterflyIndex() {
         return this.move & 0x000f;
@@ -175,6 +164,10 @@ class UpdatedBoard {
         let anyBlackAttack;
         let moveTargets = [],
             moveList = [];
+        const wKingCastleMask = 0b0000011000000000000000000000000000000000000000000000000000000000n;
+        const wQueenCastleMask =
+            0b0011000000000000000000000000000000000000000000000000000000000000n;
+        const boardMask = 0b1111111111111111111111111111111111111111111111111111111111111111n;
 
         //Black rooks and queens West
         let _blackAttacks = westAttacks(
@@ -709,6 +702,10 @@ class UpdatedBoard {
         let anyWhiteAttack;
         let moveTargets = [],
             moveList = [];
+        const bKingCastleMask = 0b0000000000000000000000000000000000000000000000000000000000000110n;
+        const bQueenCastleMask =
+            0b0000000000000000000000000000000000000000000000000000000000110000n;
+        const boardMask = 0b1111111111111111111111111111111111111111111111111111111111111111n;
 
         //Black rooks and queens West
         let _whiteAttacks = westAttacks(
@@ -1238,6 +1235,11 @@ class UpdatedBoard {
     }
 
     makeMove(move) {
+        const CAPTURE_FLAG = 0b0100;
+        const CASTLE_SHORT_FLAG = 0b0010;
+        const CASTLE_LONG_FLAG = 0b0011;
+        const EN_PASSANT_FLAG = 0b0101;
+
         let start = getBinFromSquare(move.from);
         let target = getBinFromSquare(move.target);
 
@@ -1690,6 +1692,7 @@ class UpdatedBoard {
 
     unmakeMove(move) {
         // * ONLY USED IN PERFT
+        const CAPTURE_FLAG = 0b0100;
 
         let start = getBinFromSquare(move.target);
         let target = getBinFromSquare(move.from);
