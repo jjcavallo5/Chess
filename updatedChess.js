@@ -1,4 +1,4 @@
-const PERFT_DEPTH = 5;
+const PERFT_DEPTH = 4;
 
 class Move {
     constructor(from, to, flags) {
@@ -360,6 +360,8 @@ class UpdatedBoard {
 
         //Castling
         let _KSCastleBool = this.lightCastleRights[0];
+        const CASTLE_SHORT_FLAG = 0b0010;
+        const CASTLE_LONG_FLAG = 0b0011;
         _KSCastleBool *= (this.lightKing & binarySquares[4]) != 0n;
         _KSCastleBool *= !(anyBlackAttack & wKingCastleMask) && !(this.occupied & wKingCastleMask);
         let _QSCastleBool = this.lightCastleRights[1];
@@ -706,6 +708,8 @@ class UpdatedBoard {
         const bQueenCastleMask =
             0b0000000000000000000000000000000000000000000000000000000000110000n;
         const boardMask = 0b1111111111111111111111111111111111111111111111111111111111111111n;
+        const CASTLE_SHORT_FLAG = 0b0010;
+        const CASTLE_LONG_FLAG = 0b0011;
 
         //Black rooks and queens West
         let _whiteAttacks = westAttacks(

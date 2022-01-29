@@ -16,9 +16,9 @@ var lightQueen = document.querySelector(".LQueen");
 var darkQueen = document.querySelector(".DQueen");
 
 var board15 = new UpdatedBoard();
-console.time("Perft");
-console.log(board15.perft(PERFT_DEPTH));
-console.timeEnd("Perft");
+// console.time("Perft");
+// console.log(board15.perft(PERFT_DEPTH));
+// console.timeEnd("Perft");
 SetBoard();
 
 // console.time("Get Moves");
@@ -231,6 +231,10 @@ function resetBoard() {
 
 function isLegalMove(start_sq, target_sq, element) {
     console.log(start_sq, target_sq);
+    const CAPTURE_FLAG = 0b0100;
+    const CASTLE_SHORT_FLAG = 0b0010;
+    const CASTLE_LONG_FLAG = 0b0011;
+    const EN_PASSANT_FLAG = 0b0101;
     let legal;
     let start = getSquareIndexFromClassName(start_sq);
     let target = getSquareIndexFromClassName(target_sq);
