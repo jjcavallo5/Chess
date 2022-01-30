@@ -348,6 +348,10 @@ function dragStart(e, element, elementClass) {
     };
 }
 
+function drawArrow() {
+    return;
+}
+
 function getSquare(x, y) {
     board = document.querySelector(".ChessBoard");
     let topLeftY = board.offsetTop;
@@ -388,136 +392,200 @@ function min(a, b) {
 function InitEventListeners() {
     A2Pawn = document.getElementById("A2Pawn");
     A2Pawn.addEventListener("mousedown", (e) => {
-        dragStart(e, A2Pawn, "LPawn");
+        if (e.button == 0) {
+            dragStart(e, A2Pawn, "LPawn");
+        } else drawArrow(e);
     });
     B2Pawn = document.getElementById("B2Pawn");
     B2Pawn.addEventListener("mousedown", (e) => {
-        dragStart(e, B2Pawn, "LPawn");
+        if (e.button == 0) {
+            dragStart(e, B2Pawn, "LPawn");
+        } else drawArrow(e);
     });
     C2Pawn = document.getElementById("C2Pawn");
     C2Pawn.addEventListener("mousedown", (e) => {
-        dragStart(e, C2Pawn, "LPawn");
+        if (e.button == 0) {
+            dragStart(e, C2Pawn, "LPawn");
+        } else drawArrow(e);
     });
     D2Pawn = document.getElementById("D2Pawn");
     D2Pawn.addEventListener("mousedown", (e) => {
-        dragStart(e, D2Pawn, "LPawn");
+        if (e.button == 0) {
+            dragStart(e, D2Pawn, "LPawn");
+        } else drawArrow(e);
     });
     E2Pawn = document.getElementById("E2Pawn");
     E2Pawn.addEventListener("mousedown", (e) => {
-        dragStart(e, E2Pawn, "LPawn");
+        if (e.button == 0) {
+            dragStart(e, E2Pawn, "LPawn");
+        } else drawArrow();
     });
     F2Pawn = document.getElementById("F2Pawn");
     F2Pawn.addEventListener("mousedown", (e) => {
-        dragStart(e, F2Pawn, "LPawn");
+        if (e.button == 0) {
+            dragStart(e, F2Pawn, "LPawn");
+        } else drawArrow();
     });
     G2Pawn = document.getElementById("G2Pawn");
     G2Pawn.addEventListener("mousedown", (e) => {
-        dragStart(e, G2Pawn, "LPawn");
+        if (e.button == 0) {
+            dragStart(e, G2Pawn, "LPawn");
+        } else drawArrow();
     });
     H2Pawn = document.getElementById("H2Pawn");
     H2Pawn.addEventListener("mousedown", (e) => {
-        dragStart(e, H2Pawn, "LPawn");
+        if (e.button == 0) {
+            dragStart(e, H2Pawn, "LPawn");
+        } else drawArrow();
     });
 
     A7Pawn = document.getElementById("A7Pawn");
     A7Pawn.addEventListener("mousedown", (e) => {
-        dragStart(e, A7Pawn, "DPawn");
+        if (e.button == 0) {
+            dragStart(e, A7Pawn, "DPawn");
+        } else drawArrow();
     });
     B7Pawn = document.getElementById("B7Pawn");
     B7Pawn.addEventListener("mousedown", (e) => {
-        dragStart(e, B7Pawn, "DPawn");
+        if (e.button == 0) {
+            dragStart(e, B7Pawn, "DPawn");
+        } else drawArrow();
     });
     C7Pawn = document.getElementById("C7Pawn");
     C7Pawn.addEventListener("mousedown", (e) => {
-        dragStart(e, C7Pawn, "DPawn");
+        if (e.button == 0) {
+            dragStart(e, C7Pawn, "DPawn");
+        } else drawArrow();
     });
     D7Pawn = document.getElementById("D7Pawn");
     D7Pawn.addEventListener("mousedown", (e) => {
-        dragStart(e, D7Pawn, "DPawn");
+        if (e.button == 0) {
+            dragStart(e, D7Pawn, "DPawn");
+        } else drawArrow();
     });
     E7Pawn = document.getElementById("E7Pawn");
     E7Pawn.addEventListener("mousedown", (e) => {
-        dragStart(e, E7Pawn, "DPawn");
+        if (e.button == 0) {
+            dragStart(e, E7Pawn, "DPawn");
+        } else drawArrow();
     });
     F7Pawn = document.getElementById("F7Pawn");
     F7Pawn.addEventListener("mousedown", (e) => {
-        dragStart(e, F7Pawn, "DPawn");
+        if (e.button == 0) {
+            dragStart(e, F7Pawn, "DPawn");
+        } else drawArrow();
     });
     G7Pawn = document.getElementById("G7Pawn");
     G7Pawn.addEventListener("mousedown", (e) => {
-        dragStart(e, G7Pawn, "DPawn");
+        if (e.button == 0) {
+            dragStart(e, G7Pawn, "DPawn");
+        } else drawArrow();
     });
     H7Pawn = document.getElementById("H7Pawn");
     H7Pawn.addEventListener("mousedown", (e) => {
-        dragStart(e, H7Pawn, "DPawn");
+        if (e.button == 0) {
+            dragStart(e, H7Pawn, "DPawn");
+        } else drawArrow();
     });
 
     A1Rook = document.getElementById("A1Rook");
     A1Rook.addEventListener("mousedown", (e) => {
-        dragStart(e, A1Rook, "LRook");
+        if (e.button == 0) {
+            dragStart(e, A1Rook, "LRook");
+        } else drawArrow();
     });
     H1Rook = document.getElementById("H1Rook");
     H1Rook.addEventListener("mousedown", (e) => {
-        dragStart(e, H1Rook, "LRook");
+        if (e.button == 0) {
+            dragStart(e, H1Rook, "LRook");
+        } else drawArrow();
     });
     A8Rook = document.getElementById("A8Rook");
     A8Rook.addEventListener("mousedown", (e) => {
-        dragStart(e, A8Rook, "DRook");
+        if (e.button == 0) {
+            dragStart(e, A8Rook, "DRook");
+        } else drawArrow();
     });
     H8Rook = document.getElementById("H8Rook");
     H8Rook.addEventListener("mousedown", (e) => {
-        dragStart(e, H8Rook, "DRook");
+        if (e.button == 0) {
+            dragStart(e, H8Rook, "DRook");
+        } else drawArrow();
     });
 
     B1Knight = document.getElementById("B1Knight");
     B1Knight.addEventListener("mousedown", (e) => {
-        dragStart(e, B1Knight, "LKnight");
+        if (e.button == 0) {
+            dragStart(e, B1Knight, "LKnight");
+        } else drawArrow();
     });
     G1Knight = document.getElementById("G1Knight");
     G1Knight.addEventListener("mousedown", (e) => {
-        dragStart(e, G1Knight, "LKnight");
+        if (e.button == 0) {
+            dragStart(e, G1Knight, "LKnight");
+        } else drawArrow();
     });
     B8Knight = document.getElementById("B8Knight");
     B8Knight.addEventListener("mousedown", (e) => {
-        dragStart(e, B8Knight, "DKnight");
+        if (e.button == 0) {
+            dragStart(e, B8Knight, "DKnight");
+        } else drawArrow();
     });
     G8Knight = document.getElementById("G8Knight");
     G8Knight.addEventListener("mousedown", (e) => {
-        dragStart(e, G8Knight, "DKnight");
+        if (e.button == 0) {
+            dragStart(e, G8Knight, "DKnight");
+        } else drawArrow();
     });
 
     C1Bishop = document.getElementById("C1Bishop");
     C1Bishop.addEventListener("mousedown", (e) => {
-        dragStart(e, C1Bishop, "LBishop");
+        if (e.button == 0) {
+            dragStart(e, C1Bishop, "LBishop");
+        } else drawArrow();
     });
     F1Bishop = document.getElementById("F1Bishop");
     F1Bishop.addEventListener("mousedown", (e) => {
-        dragStart(e, F1Bishop, "LBishop");
+        if (e.button == 0) {
+            dragStart(e, F1Bishop, "LBishop");
+        } else drawArrow();
     });
     C8Bishop = document.getElementById("C8Bishop");
     C8Bishop.addEventListener("mousedown", (e) => {
-        dragStart(e, C8Bishop, "DBishop");
+        if (e.button == 0) {
+            dragStart(e, C8Bishop, "DBishop");
+        } else drawArrow();
     });
     F8Bishop = document.getElementById("F8Bishop");
     F8Bishop.addEventListener("mousedown", (e) => {
-        dragStart(e, F8Bishop, "DBishop");
+        if (e.button == 0) {
+            dragStart(e, F8Bishop, "DBishop");
+        } else drawArrow();
     });
 
     E1King = document.getElementById("E1King");
     E1King.addEventListener("mousedown", (e) => {
-        dragStart(e, E1King, "LKing");
+        if (e.button == 0) {
+            dragStart(e, E1King, "LKing");
+        } else drawArrow();
     });
     E8King = document.getElementById("E8King");
     E8King.addEventListener("mousedown", (e) => {
-        dragStart(e, E8King, "DKing");
+        if (e.button == 0) {
+            dragStart(e, E8King, "DKing");
+        } else drawArrow();
     });
     D1Queen = document.getElementById("D1Queen");
     D1Queen.addEventListener("mousedown", (e) => {
-        dragStart(e, D1Queen, "LQueen");
+        if (e.button == 0) {
+            dragStart(e, D1Queen, "LQueen");
+        } else drawArrow();
     });
     D8Queen = document.getElementById("D8Queen");
     D8Queen.addEventListener("mousedown", (e) => {
-        dragStart(e, D8Queen, "DQueen");
+        if (e.button == 0) {
+            dragStart(e, D8Queen, "DQueen");
+        } else drawArrow();
     });
 }
 
